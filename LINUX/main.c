@@ -62,6 +62,10 @@ static void printMemStats(int handle, char_t *fmt, ...);
 static void memLeaks();
 #endif
 
+
+static int	aspTest2(int eid, webs_t wp, int argc, char_t **argv);
+
+
 static int	aspVol(int eid, webs_t wp, int argc, char_t **argv);
 
 
@@ -97,6 +101,7 @@ void repACHEQ(EQOP_STR *p);void repBCHEQ(EQOP_STR *p);
 void repVol(VOL_OP *p); //void repVol(VOL_STR *p);
 void repOutDly(Outdly *p);void repLimit(LimiterOP_STR *p);void rep3DDly(unsigned char Ch, DLY_STR *p);void rep3DMix(unsigned char Ch, float mixer[4]);void rep3DEn(unsigned char Ch, unsigned char en);void repSctHLpf(unsigned char Ch, unsigned char hl,HLPF_STR *p);void repSctBpf(unsigned char Ch, BPF_STR *p);void repSctAgc(unsigned char Ch, unsigned char hbl, DRC_STR *p);void repSctDepth(unsigned char Ch, unsigned char hbl, float depth);void repHPF(CHanHLPF_STR *p);void repLPF(CHanHLPF_STR *p);void repAD(AnaOrDigSrc_STR *p);
 void repCrossBar(Crossbar_STR *p);
+void repOutVol(uint8_t out, fp32 vol);
 
 
 
@@ -281,6 +286,8 @@ static int initWebs(int demo)
  *	Now define two test procedures. Replace these with your application
  *	relevant ASP script procedures and form functions.
  */
+    websAspDefine(T("aspTest2"), aspTest2);
+
 	websAspDefine(T("aspTest"), aspTest);
 	websFormDefine(T("formTest"), formTest);
 	websFormDefine(T("formUploadFileTest"), formUploadFileTest);// add by gyr 2011.10.15
@@ -352,19 +359,62 @@ static int aspTest(int eid, webs_t wp, int argc, char_t **argv)
 	return websWrite(wp, T("Name: %s, Address %s"), name, address);
 }
 
+void achEQToStr(EQOP_STR  *p, char *dest)
+{
+    char tmp[64]={0};
+    int len=0;
+    int i;
+    for(i=0;i<48;i++,p+=1)
+    {
+        printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        memset(tmp,0,64);
+        sprintf(tmp,"%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        strcpy(dest+len,tmp);
+        len += strlen(tmp);
+    }
+
+    printf("%s,len=%d\n",dest,strlen(dest));
+}
+
+static int	aspTest2(int eid, webs_t wp, int argc, char_t **argv)
+{
+    char *dest = (char*)malloc(1024*4);
+    STR_DSP dspInfo;
+    memset(&dspInfo,0,sizeof(dspInfo));
+    int i;
+
+    for(i=0;i<48;i++) {
+        dspInfo.achEQ[i].peq.Q = 1.0+i;
+        dspInfo.achEQ[i].peq.Gain = 1.1+i;
+        dspInfo.achEQ[i].peq.Fc = 100+i*10;
+        dspInfo.achEQ[i].peq.Type = 8;
+        dspInfo.achEQ[i].peq.en = 1;
+        dspInfo.achEQ[i].Ch = i%5;
+        dspInfo.achEQ[i].no = i%10;
+    }
+    achEQToStr(dspInfo.achEQ, dest);
+
+    return websWrite(wp, T("%s"),dest);
+}
+
+
 /******************************************************************************/
 /*   by  qmd  2014.9.19
  *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
  *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
  *	"localhost/asp.asp" to test.
  */
-
 static int aspVol(int eid, webs_t wp, int argc, char_t **argv)
 {
 	char_t	*name;
 	int Gain;
     
-    printf("%s>\n",__FUNCTION__);
+    if (ejArgs(argc, argv, T("%d"), &Gain) < 1) {
+		websError(wp, 400, T("Insufficient args\n"));
+		return -1;
+	}
+    
+    printf("%s>%d\n",__FUNCTION__,Gain);
 	return websWrite(wp, T("Vol=%d"),10);
 }
 
@@ -470,12 +520,12 @@ static void formACHEQ(webs_t wp, char_t *path, char_t *query)
 		atof(Q),atof(Gain),atoi(Fc),atoi(Type),atoi(En),atoi(no),atoi(Ch));
 }
 
+
 /******************************************************************************/
 /*   by qmd 2014.9.23
  *	Test form for posted data (in-memory CGI). This will be called when the
  *	form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
  */
-
 static void formBCHEQ(webs_t wp, char_t *path, char_t *query)
 {
 	char_t	*Fc, *Type,	*Q, *Gain, *En, *Ch, *no;
@@ -512,7 +562,6 @@ static void formBCHEQ(webs_t wp, char_t *path, char_t *query)
  *	Test form for posted data (in-memory CGI). This will be called when the
  *	form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
  */
-
 static void formHPF(webs_t wp, char_t *path, char_t *query)
 {
 	char_t	*Fc, *Type, *En, *Ch;
@@ -546,7 +595,6 @@ static void formHPF(webs_t wp, char_t *path, char_t *query)
  *	Test form for posted data (in-memory CGI). This will be called when the
  *	form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
  */
-
 static void formLPF(webs_t wp, char_t *path, char_t *query)
 {
 	char_t	*Fc, *Type, *En, *Ch;
@@ -946,7 +994,8 @@ static void formOutVol(webs_t wp, char_t *path, char_t *query)
 
 	vol =	websGetVar(wp, T("vol"), T("0"));
 	out =	websGetVar(wp, T("out"), T("0"));
-    
+
+    repOutVol(atof(vol),atoi(out));
     volOutput(0, atoi(out), atof(vol));
 
     printf("%s>, out=%d, vol=%f\n", __FUNCTION__, atoi(out), atof(vol));
@@ -1154,11 +1203,19 @@ void repVol(VOL_STR *p)
 //v2.1
 void repVol(VOL_OP *p)
 {
+    if (p->Ch >= 3) return;
     dspInfo.vol[p->Ch].vol.Gain = p->vol.Gain;
     dspInfo.vol[p->Ch].vol.Pol = p->vol.Pol;
     dspInfo.vol[p->Ch].vol.Mute = p->vol.Mute;   
     dspInfo.vol[p->Ch].Ch = p->Ch;
 }
+
+//v2.1
+void repOutVol(uint8_t out, fp32 vol)
+{
+    if (out >= 6) return;
+    dspInfo.outVol[out] = vol;
+} 
 
 
 /******************************************************************************/

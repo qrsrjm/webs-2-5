@@ -40,7 +40,7 @@ DASW	= -DDIGEST_ACCESS_SUPPORT
 # This is set by the debug target below
 #
 ifdef WEBS_DEBUG
-DFLAGS  = -g -Wall -Winline -Wdisabled-optimization -DDEBUG
+DFLAGS  = -g -Wall -Winline -Wdisabled-optimization -DDEBUG -std=c99
 else
 DFLAGS  = -Os
 endif

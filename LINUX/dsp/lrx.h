@@ -391,7 +391,8 @@ typedef struct
     CHanHLPF_STR  hpf[2];       //8 * 2
     CHanHLPF_STR  lpf[2];       //8 * 2
     AnaOrDigSrc_STR   ad;       //8
-    Crossbar_STR    crossbar1;  //8      总输入输出路由  
+    Crossbar_STR    crossbar1;  //8      总输入输出路由
+    float   outVol[6];
 } STR_DSP;
 
 STR_DSP dspInfo;

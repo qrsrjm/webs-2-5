@@ -1,4 +1,4 @@
-<html>
+;<html>
 <!- Copyright (c) Go Ahead Software Inc., 1999-2010. All Rights Reserved. ->
 <head>
 <title>ASP Test Page</title>
@@ -8,7 +8,8 @@
 
 	<script language="javascript"> 
 		function accept1(){ 
-		 	var v="<% aspVol(); %>";
+		 	<!--var v="<% aspVol(); %>";-->
+			var v="<% aspTest2(); %>";
 			alert(v);
 		} 
 	</script>
@@ -31,6 +32,9 @@
      } \
 %>
 </P>
+
+<% aspVol(); %>
+<% aspTest2(); %>
 
 <span style="color:#3333ff;"><!-- added start for test upload file by gyr 2011.10.15 -->  
 	<h1>GoForm upload file test</h1>  
