@@ -42,7 +42,7 @@ DASW	= -DDIGEST_ACCESS_SUPPORT
 ifdef WEBS_DEBUG
 DFLAGS  = -g -Wall -Winline -Wdisabled-optimization -DDEBUG -std=c99
 else
-DFLAGS  = -Os
+DFLAGS  = -Os 
 endif
 
 debug:
@@ -83,7 +83,7 @@ DEPEND_FILES	= $(OPT_FILES) ../asp.o ../balloc.o ../mime64.o \
 	 	../ringq.o ../rom.o  ../sock.o ../sockGen.o \
 		../security.o ../sym.o ../uemf.o ../url.o ../value.o \
 		../um.o ../umui.o ../websda.o ../emfdb.o \
-		../webrom.o ../webs.o ../websuemf.o main.o
+		../webrom.o ../webs.o ../websuemf.o main.o ./dsp/dataToString.o
 CFLAGS	= -DWEBS -DOS="LINUX" -DLINUX $(UMSW) $(DASW) $(SSLSW) $(IFMODSW)
 OTHERS	= -DB_STATS -DB_FILL 
 IFLAGS 	= -I.. 
@@ -95,7 +95,7 @@ compile: $(NAME)
 #	Build archive of objects
 #
 $(ARCH): $(DEPEND_FILES)
-	$(AR) $(ARFLAGS) $(ARCH) $?
+	$(AR) $(ARFLAGS) $(ARCH) $? 
 
 #
 #	Primary link
@@ -103,7 +103,7 @@ $(ARCH): $(DEPEND_FILES)
 $(NAME): Makefile $(ARCH)
 	$(CC) -o $(NAME) $(DFLAGS) \
 		$(CFLAGS) $(IFLAGS) \
-		main.o $(ARCH) $(LDFLAGS) lrsunDsp.so
+		main.o $(ARCH) $(LDFLAGS) lrsunDsp.so 
 
 clean:
 	rm -f $(NAME) $(ARCH) $(DEPEND_FILES)
@@ -175,10 +175,12 @@ clean:
 
 ../matrixSSLSocket.o:  ../matrixSSLSocket.c ../matrixSSLSocket.h
 
-main.o:  main.c ../wsIntrn.h ../webs.h ../ej.h ../ejIntrn.h ../uemf.h
+main.o:  main.c ../wsIntrn.h ../webs.h ../ej.h ../ejIntrn.h ../uemf.h 
+
+dataToString.o: dataToString.c
 
 #
 #	Transition rules (add -o to put object in right directory)
 #
 .c.o:
-	$(CC) -c -o $@ $(DFLAGS) $(CFLAGS) $(IFLAGS) $<
+	$(CC) -c -o $@ $(DFLAGS) $(CFLAGS) $(IFLAGS) $< 

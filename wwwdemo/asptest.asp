@@ -9,7 +9,7 @@
 	<script language="javascript"> 
 		function accept1(){ 
 		 	<!--var v="<% aspVol(); %>";-->
-			var v="<% aspTest2(); %>";
+			var v="<% aspGetInputVol(); %>";
 			alert(v);
 		} 
 	</script>
@@ -33,8 +33,20 @@
 %>
 </P>
 
-<% aspVol(); %>
-<% aspTest2(); %>
+<% aspVol(); %><br/>
+<% aspGetInputVol(); %><br/>
+<% aspGetBchEQ(); %><br/>
+<% aspGetAchEQ(); %><br/>
+<% aspGetOutDly(); %><br/>
+<% aspGetLimit(); %><br/>
+<% aspGet3D(); %><br/>
+<% aspGetSct(); %><br/>
+<% aspGetHpf(); %><br/>
+<% aspGetLpf(); %><br/>
+<% aspGetAd(); %><br/>
+<% aspGetOutMix(); %><br/>
+<% aspGetOutVol(); %><br/>
+<% aspGetVersion(); %><br/>
 
 <span style="color:#3333ff;"><!-- added start for test upload file by gyr 2011.10.15 -->  
 	<h1>GoForm upload file test</h1>  
@@ -74,6 +86,13 @@
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 		<h1>GoForm download</h1> 
 		<form name="download" action="/goform/formDlownload" method="post" target="rfFrame">
+			     <input name="" type="submit"/>
+		</form>
+	<hr/>
+
+	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
+		<h1>GoForm show</h1> 
+		<form name="show" action="/goform/formShowInfo" method="post" target="rfFrame">
 			     <input name="" type="submit"/>
 		</form>
 	<hr/>

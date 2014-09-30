@@ -33,8 +33,9 @@ void	formDefineUserMgmt(void);
 
 /** add by qmd  2014.9.20  */
 #include "dsp/DSP.h"
+#include "dsp/dataToString.h"
 
-
+STR_DSP *rDspInfo = NULL;
 
 /*********************************** Locals ***********************************/
 /*
@@ -65,8 +66,23 @@ static void memLeaks();
 
 static int	aspTest2(int eid, webs_t wp, int argc, char_t **argv);
 
-
 static int	aspVol(int eid, webs_t wp, int argc, char_t **argv);
+
+static int aspGetVersion(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetOutVol(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetOutMix(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetAd(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetLpf(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetHpf(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetSct(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGet3D(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetLimit(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetOutDly(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetAchEQ(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetBchEQ(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetInputVol(int eid, webs_t wp, int argc, char_t **argv);
+static int aspVuDetect(int eid, webs_t wp, int argc, char_t **argv);
+
 
 
 static void formDlownload(webs_t wp, char_t *path, char_t *query);
@@ -96,10 +112,22 @@ static void formOutVol(webs_t wp, char_t *path, char_t *query);
 static void formVuDetect(webs_t wp, char_t *path, char_t *query);
 static void formSave(webs_t wp, char_t *path, char_t *query);
 static void formRead(webs_t wp, char_t *path, char_t *query);
+static void formShowInfo(webs_t wp, char_t *path, char_t *query);
 
-void repACHEQ(EQOP_STR *p);void repBCHEQ(EQOP_STR *p);
+void repACHEQ(EQOP_STR *p);
+void repBCHEQ(EQOP_STR *p);
 void repVol(VOL_OP *p); //void repVol(VOL_STR *p);
-void repOutDly(Outdly *p);void repLimit(LimiterOP_STR *p);void rep3DDly(unsigned char Ch, DLY_STR *p);void rep3DMix(unsigned char Ch, float mixer[4]);void rep3DEn(unsigned char Ch, unsigned char en);void repSctHLpf(unsigned char Ch, unsigned char hl,HLPF_STR *p);void repSctBpf(unsigned char Ch, BPF_STR *p);void repSctAgc(unsigned char Ch, unsigned char hbl, DRC_STR *p);void repSctDepth(unsigned char Ch, unsigned char hbl, float depth);void repHPF(CHanHLPF_STR *p);void repLPF(CHanHLPF_STR *p);void repAD(AnaOrDigSrc_STR *p);
+void repOutDly(Outdly *p);
+void repLimit(LimiterOP_STR *p);
+void rep3DDly(unsigned char Ch, DLY_STR *p);
+void rep3DMix(unsigned char Ch, float mixer[4]);
+void rep3DEn(unsigned char Ch, unsigned char en);
+void repSctHLpf(unsigned char Ch, unsigned char hl,HLPF_STR *p);
+void repSctBpf(unsigned char Ch, BPF_STR *p);
+void repSctAgc(unsigned char Ch, unsigned char hbl, DRC_STR *p);
+void repSctDepth(unsigned char Ch, unsigned char hbl, float depth);
+void repHPF(CHanHLPF_STR *p);void repLPF(CHanHLPF_STR *p);
+void repAD(AnaOrDigSrc_STR *p);
 void repCrossBar(Crossbar_STR *p);
 void repOutVol(uint8_t out, fp32 vol);
 
@@ -119,7 +147,12 @@ int main(int argc, char** argv)
 			demo++;
 		}
 	}
-
+    //add qmd 2014.9.30
+    #if test_info
+    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
+    #else
+    rDspInfo = &dspInfo;
+    #endif
 /*
  *	Initialize the memory allocator. Allow use of malloc and start
  *	with a 60K heap.  For each page request approx 8KB is allocated.
@@ -175,6 +208,7 @@ int main(int argc, char** argv)
 	memLeaks();
 #endif
 	bclose();
+
 	return 0;
 }
 
@@ -294,15 +328,26 @@ static int initWebs(int demo)
 
 
 	websAspDefine(T("aspVol"), aspVol);
+    
+    websAspDefine(T("aspGetInputVol"), aspGetInputVol);
+    websAspDefine(T("aspGetBchEQ"), aspGetBchEQ);
+    websAspDefine(T("aspGetAchEQ"), aspGetAchEQ);
+    websAspDefine(T("aspGetOutDly"), aspGetOutDly);
+    websAspDefine(T("aspGetLimit"), aspGetLimit);
+    websAspDefine(T("aspGet3D"), aspGet3D);
+    websAspDefine(T("aspGetSct"), aspGetSct);
+    websAspDefine(T("aspGetHpf"), aspGetHpf);
+    websAspDefine(T("aspGetLpf"), aspGetLpf);
+    websAspDefine(T("aspGetAd"), aspGetAd);
+    websAspDefine(T("aspGetOutMix"), aspGetOutMix);
+    websAspDefine(T("aspGetOutVol"), aspGetOutVol);
+    websAspDefine(T("aspGetVersion"), aspGetVersion);
 
-	websFormDefine(T("formDlownload"), formDlownload);
-    
+	websFormDefine(T("formDlownload"), formDlownload);   
 	websFormDefine(T("formACHEQ"), formACHEQ);
-	websFormDefine(T("formBCHEQ"), formBCHEQ);
-    
+	websFormDefine(T("formBCHEQ"), formBCHEQ); 
 	websFormDefine(T("formHPF"), formHPF);   
-	websFormDefine(T("formLPF"), formLPF);
-    
+	websFormDefine(T("formLPF"), formLPF); 
 	websFormDefine(T("formLIMT"), formLIMT);
 	websFormDefine(T("formDelay"), formDelay);
 	websFormDefine(T("formVol"), formVol);
@@ -324,6 +369,7 @@ static int initWebs(int demo)
 	websFormDefine(T("formVuDetect"), formVuDetect);
 	websFormDefine(T("formSave"), formSave);
 	websFormDefine(T("formRead"), formRead);
+    websFormDefine(T("formShowInfo"), formShowInfo);
 
 	
 /*
@@ -359,40 +405,11 @@ static int aspTest(int eid, webs_t wp, int argc, char_t **argv)
 	return websWrite(wp, T("Name: %s, Address %s"), name, address);
 }
 
-void achEQToStr(EQOP_STR  *p, char *dest)
-{
-    char tmp[64]={0};
-    int len=0;
-    int i;
-    for(i=0;i<48;i++,p+=1)
-    {
-        printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
-        memset(tmp,0,64);
-        sprintf(tmp,"%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
-        strcpy(dest+len,tmp);
-        len += strlen(tmp);
-    }
-
-    printf("%s,len=%d\n",dest,strlen(dest));
-}
 
 static int	aspTest2(int eid, webs_t wp, int argc, char_t **argv)
 {
     char *dest = (char*)malloc(1024*4);
-    STR_DSP dspInfo;
-    memset(&dspInfo,0,sizeof(dspInfo));
-    int i;
 
-    for(i=0;i<48;i++) {
-        dspInfo.achEQ[i].peq.Q = 1.0+i;
-        dspInfo.achEQ[i].peq.Gain = 1.1+i;
-        dspInfo.achEQ[i].peq.Fc = 100+i*10;
-        dspInfo.achEQ[i].peq.Type = 8;
-        dspInfo.achEQ[i].peq.en = 1;
-        dspInfo.achEQ[i].Ch = i%5;
-        dspInfo.achEQ[i].no = i%10;
-    }
-    achEQToStr(dspInfo.achEQ, dest);
 
     return websWrite(wp, T("%s"),dest);
 }
@@ -426,7 +443,6 @@ static int aspVol(int eid, webs_t wp, int argc, char_t **argv)
  *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
  *	"localhost/asp.asp" to test.
  */
-
 static int aspVuDetect(int eid, webs_t wp, int argc, char_t **argv)
 {
 	char_t	*name;
@@ -439,6 +455,339 @@ static int aspVuDetect(int eid, webs_t wp, int argc, char_t **argv)
 	return websWrite(wp, T("vol: %s, Gain %d"), name, Gain);
 }
 
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetInputVol(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+    char dest[64];
+    memset(dest,0,64);
+    volToStr(rDspInfo->vol, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("vol: %s"), dest);
+}
+
+
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetBchEQ(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    for(i=0;i<2;i++)
+    for(j=0;j<7;j++)
+        eqToStr(&(rDspInfo->bchEQ[i][j]), dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("bcheq: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetAchEQ(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[1024*2]={0};
+    memset(dest,0,512*4);
+    for(i=0;i<48;i++)
+        eqToStr(&(rDspInfo->achEQ[i]), dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("acheq: %s"), dest);
+}
+
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetOutDly(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[128]={0};
+    memset(dest,0,128);
+    outDlyToStr(rDspInfo->outDly, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("outdly: %s"), dest);
+}
+
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetLimit(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[280]={0};
+    memset(dest,0,280);
+    limitToStr(rDspInfo->limit, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("limit: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGet3D(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[120]={0};
+    memset(dest,0,120);
+    m3DToStr(rDspInfo->m3D, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("3d: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetSct(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    sctToStr(rDspInfo->sct, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("sct: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetHpf(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[100]={0};
+    memset(dest,0,100);
+    hpfToStr(rDspInfo->hpf, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("hpf: %s"), dest);
+}
+
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetLpf(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[100]={0};
+    memset(dest,0,100);
+    lpfToStr(&(rDspInfo->lpf), dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("lpf: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetAd(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[32]={0};
+    memset(dest,0,32);
+    ADToStr(&(rDspInfo->ad), dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("ad: %s"), dest);
+}
+
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetOutMix(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    crossbar1ToStr(rDspInfo->crossbar1, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("outMix: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetOutVol(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[100]={0};
+    memset(dest,0,100);
+    outVolToStr(rDspInfo->outVol, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("outVol: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.9.30
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetVersion(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
+	//	websError(wp, 400, T("Insufficient args\n"));
+	//	return -1;
+	//}
+	int i,j;
+    char dest[8]={0};
+    memset(dest,0,8);
+    strcpy(rDspInfo->version,"1.0.21");
+    versionToStr(rDspInfo->version, dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("version: %s"), dest);
+}
 
 
 /******************************************************************************/
@@ -715,7 +1064,7 @@ static void formVol(webs_t wp, char_t *path, char_t *query)
 	Mute =	 websGetVar(wp, T("Mute"), T("0"));
     Ch= 	websGetVar(wp, T("Ch"), T("0"));
     
-    VOL_OP *p = (VOL_STR*)malloc(sizeof(VOL_STR));
+    VOL_OP *p = (VOL_OP*)malloc(sizeof(VOL_OP));
 	p->vol.Gain = atof(Gain);
 	p->vol.Pol = (int8_t)atoi(Pol);
 	p->vol.Mute = (int8_t)atoi(Mute);
@@ -1124,6 +1473,7 @@ static void formSave(webs_t wp, char_t *path, char_t *query)
  *  Test form for posted data (in-memory CGI). This will be called when the
  *  form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
  */
+static int first = 1;
 static void formRead(webs_t wp, char_t *path, char_t *query)
 {    
     uint8 outVal[8]={0};
@@ -1132,12 +1482,90 @@ static void formRead(webs_t wp, char_t *path, char_t *query)
         printf("can't open default.txt\n");
         return;
     }
-    char *dspStr = (char*)malloc(1024*4);
-    STR_DSP rDspInfo;
-    int rt = fread(&rDspInfo,1,sizeof(rDspInfo),fp);
-
     
+    //if(first) {
+    //    first = 0;
+    //    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
+    //}
+    int rt = fread(rDspInfo,1,sizeof(STR_DSP),fp); 
 }
+
+/******************************************************************************/
+/*   by qmd 2014.9.30
+ *  Test form for posted data (in-memory CGI). This will be called when the
+ *  form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
+ */
+static void formShowInfo(webs_t wp, char_t *path, char_t *query)
+{    
+    int i,j;
+    void *p=NULL;
+    
+    (VOL_OP*)p = dspInfo.vol;
+    for(i=0;i<3;i++,p+=1)
+        printf("vol %d,%f,%d,%d,\n",p->Ch,p->vol.Gain, p->vol.Pol,p->vol.Mute);
+
+    (EQOP_STR*)p = dspInfo.achEQ;
+    for(i=0;i<48;i++,p+=1)
+        printf("EQ %d,%d,%f,%f,%d,%d,%d,\n",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+
+    for(i=0;i<2;i++)
+    for(j=0;j<7;j++) {
+        (EQOP_STR*)p = &(dspInfo.bchEQ[i][j]);
+        printf("EQ %d,%d,%f,%f,%d,%d,%d,\n",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+    }
+
+    (Outdly *)p = dspInfo.outDly;
+    for(i=0;i<6;i++,p+=1)
+        printf("outDly %d,%f,%d,\n",p->Ch,p->delay.Dly,p->delay.en);
+
+    (LimiterOP_STR *)p = dspInfo.limit;
+    for(i=0;i<6;i++,p+=1)
+        printf("limit %d,%f,%f,%f,%f,%d,\n",p->Ch,p->limiter.T2,p->limiter.k2,p->limiter.Attack,p->limiter.Release,p->limiter.en);
+
+    (Music3DOp_STR *)p = dspInfo.m3D;
+    for(i=0;i<2;i++,p+=1)     
+        printf("3d %d,%f,%d,%f,%f,%f,%f,%d,\n",p->Ch,p->delay.Dly,p->delay.en,p->mix[0],p->mix[1],p->mix[2],p->mix[3],p->en);
+
+
+    for(i=0;i<2;i++) {
+        (SCTOP_STR *)p = &(dspInfo.sct[i]);
+        printf("SCT %d,%d,vol %f,%f,%f,mix=%f,%f,%f,%f",p->Ch,p->en,p->hVolDepth,p->bVolDepth,p->lVolDepth,p->mix[0],p->mix[1],p->mix[2],p->mix[3]);
+    }
+    
+    for(i=0;i<2;i++) {
+        (HLPF_STR *)p = &(dspInfo.sct[i].hpf);
+        printf("sct[%d] hpf %d,%d,%d,\n",i,p->Fc,p->Type,p->en);
+    }
+    for(i=0;i<2;i++) {
+        (HLPF_STR *)p = &(dspInfo.sct[i].lpf);
+        printf("sct[%d] lpf %d,%d,%d,\n",i,p->Fc,p->Type,p->en);
+    }
+    for(i=0;i<2;i++) {
+        (BPF_STR *)p = &(dspInfo.sct[i].bpf);
+        printf("bpf[%d] %d,%d,%d,%d,\n",i,p->Fp,p->Fs,p->Type,p->en);
+    }
+
+    (HLPF_STR *)p = dspInfo.hpf;
+    for(i=0;i<6;i++,p+=1)
+        printf("hpf %d,%d,%d,\n",p->Fc,p->Type,p->en);
+
+    (HLPF_STR *)p = dspInfo.lpf;
+        printf("lpf %d,%d,%d,\n",p->Fc,p->Type,p->en);
+
+
+    (AnaOrDigSrc_STR *)p = &(dspInfo.ad);
+        printf("ad%d,%f,\n",p->en,p->mixer);
+
+    (Crossbar_STR *)p = dspInfo.crossbar1;
+        for(i=0;i<12;i++,p+=1)
+            printf("crossbar %d,%d,%f,\n",p->in,p->out,p->mix);
+
+    (fp32 *)p = dspInfo.outVol;
+    for(i=0;i<6;i++,p+=1) 
+        printf(tmp,"outVol %f,\n",*p);
+
+}
+
 
 
 
@@ -1383,11 +1811,11 @@ void repHPF(CHanHLPF_STR *p)
  */
 void repLPF(CHanHLPF_STR *p)
 {
-    if (p->Ch == 5) {
-        dspInfo.lpf[p->Ch].Ch = p->Ch;
-        dspInfo.lpf[p->Ch].xpf.Fc = p->xpf.Fc;
-        dspInfo.lpf[p->Ch].xpf.Type = p->xpf.Type;
-        dspInfo.lpf[p->Ch].xpf.en = p->xpf.en;
+    if (p->Ch == 4) {
+        dspInfo.lpf.Ch = p->Ch;
+        dspInfo.lpf.xpf.Fc = p->xpf.Fc;
+        dspInfo.lpf.xpf.Type = p->xpf.Type;
+        dspInfo.lpf.xpf.en = p->xpf.en;
     }
 }
 
@@ -1409,10 +1837,10 @@ void repAD(AnaOrDigSrc_STR *p)
  */
 void repCrossBar(Crossbar_STR *p)
 {
-    dspInfo.crossbar1.in = p->in;
-    dspInfo.crossbar1.out = p->out;
-    dspInfo.crossbar1.rd = p->rd;
-    dspInfo.crossbar1.mix = p->mix;
+    dspInfo.crossbar1[p->in][p->out].in = p->in;
+    dspInfo.crossbar1[p->in][p->out].out = p->out;
+    dspInfo.crossbar1[p->in][p->out].rd = p->rd;
+    dspInfo.crossbar1[p->in][p->out].mix = p->mix;
 }
 
 

@@ -388,14 +388,17 @@ typedef struct
     LimiterOP_STR  limit[6];    //24 * 6    
     Music3DOp_STR  m3D[2];      //28 * 2
     SCTOP_STR    sct[2];        //104 * 2
-    CHanHLPF_STR  hpf[2];       //8 * 2
-    CHanHLPF_STR  lpf[2];       //8 * 2
+    CHanHLPF_STR  hpf[6];       //8 * 6
+    CHanHLPF_STR  lpf;       //8 * 2
     AnaOrDigSrc_STR   ad;       //8
-    Crossbar_STR    crossbar1;  //8      总输入输出路由
+    Crossbar_STR    crossbar1[2][6];  //8      总输入输出路由
     float   outVol[6];
+    char version[8];
 } STR_DSP;
 
 STR_DSP dspInfo;
+
+
 
 
 
