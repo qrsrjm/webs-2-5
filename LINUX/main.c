@@ -126,10 +126,12 @@ void repSctHLpf(unsigned char Ch, unsigned char hl,HLPF_STR *p);
 void repSctBpf(unsigned char Ch, BPF_STR *p);
 void repSctAgc(unsigned char Ch, unsigned char hbl, DRC_STR *p);
 void repSctDepth(unsigned char Ch, unsigned char hbl, float depth);
+void repSctMix(unsigned char Ch, float mixer[4]);
 void repHPF(CHanHLPF_STR *p);void repLPF(CHanHLPF_STR *p);
 void repAD(AnaOrDigSrc_STR *p);
 void repCrossBar(Crossbar_STR *p);
 void repOutVol(uint8_t out, fp32 vol);
+void repSctEn(unsigned char Ch, uint8_t en);
 
 
 
@@ -148,7 +150,7 @@ int main(int argc, char** argv)
 		}
 	}
     //add qmd 2014.9.30
-    #if test_info
+    #if 1 //test_info
     rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
     #else
     rDspInfo = &dspInfo;
@@ -896,7 +898,7 @@ static void formBCHEQ(webs_t wp, char_t *path, char_t *query)
 	p->no = atoi(no);
 	p->Ch = atoi(Ch);
     
-    repACHEQ(p);
+    repBCHEQ(p);
 
     DspBCHPEQ(p);
 	free(p);
@@ -928,9 +930,6 @@ static void formHPF(webs_t wp, char_t *path, char_t *query)
 
     repHPF(p);
     DspACHBp_HP(p);
-
-    printf("%s> Fc=%d,Type=%d,En=%d,Ch=%d\n",__FUNCTION__,        
-            p->xpf.Fc,p->xpf.Type,p->xpf.en,p->Ch);
     
 	free(p);
 
@@ -1192,6 +1191,7 @@ static void formVolDepth(webs_t wp, char_t *path, char_t *query)
 	Type=    websGetVar(wp, T("Type"), T("0"));	   
 	Ch=      websGetVar(wp, T("Ch"), T("0"));	
 
+	repSctDepth(atoi(Ch),atoi(Type),atof(Gain));
 	DspSetSctDepth(atoi(Type), atof(Gain), atoi(Ch));
 	
 	printf("%s> Gain=%f,Type=%d,Ch=%d\n",__FUNCTION__,		  
@@ -1289,24 +1289,33 @@ static void formSctLpf(webs_t wp, char_t *path, char_t *query)
  */
 static void formSctMixer(webs_t wp, char_t *path, char_t *query)
 {
-	char_t	*mix0, *mix1, *mix2, *mix3, *Ch;
+	char_t	*mix0, *mix1, *mix2, *mix3, *Ch, *en;
 	float mixer[4]={0};
 	
 	mix0 =	websGetVar(wp, T("mix0"), T("0"));	
 	mix1 =	websGetVar(wp, T("mix1"), T("0"));	
 	mix2 =	websGetVar(wp, T("mix2"), T("0"));	
 	mix3 =	websGetVar(wp, T("mix3"), T("0"));	
+	en =	websGetVar(wp, T("en"), T("0"));
 	Ch= 	websGetVar(wp, T("Ch"), T("0"));
 
-	mixer[0] = atof(mix0); mixer[1] = atof(mix1); 
-	mixer[2] = atof(mix2); mixer[3] = atof(mix3);
-
-    rep3DMix(atoi(Ch),mixer);
-	DspSctEn(mixer,atoi(Ch));
-	
-	printf("%s> -->=%f,xpf=%f,bpf=%f,lpf=%f,Ch=%d\n", __FUNCTION__,	  
-		atof(mix0),atof(mix1),atof(mix2),atof(mix3),atoi(Ch));
+	if (atoi(en)) {
+		mixer[0] = atof(mix0); mixer[1] = atof(mix1); 
+		mixer[2] = atof(mix2); mixer[3] = atof(mix3);
+		
+		repSctEn(atoi(en), atoi(Ch));
+		DspSctEn(atoi(en), atoi(Ch));
+	    repSctMix(atoi(Ch),mixer);
+		DspSctMix(mixer,atoi(Ch));
+	} else {
+		repSctEn(atoi(en), atoi(Ch));
+		DspSctEn(atoi(en), atoi(Ch));
+	}	
+	printf("%s> -->=%f,xpf=%f,bpf=%f,lpf=%f,Ch=%d,en=%d\n", __FUNCTION__,	  
+		atof(mix0),atof(mix1),atof(mix2),atof(mix3),atoi(Ch),atoi(en));
 }
+
+
 
 /******************************************************************************/
 /*	 by qmd 2014.9.20
@@ -1344,7 +1353,7 @@ static void formOutVol(webs_t wp, char_t *path, char_t *query)
 	vol =	websGetVar(wp, T("vol"), T("0"));
 	out =	websGetVar(wp, T("out"), T("0"));
 
-    repOutVol(atof(vol),atoi(out));
+    repOutVol(atoi(out),atof(vol));
     volOutput(0, atoi(out), atof(vol));
 
     printf("%s>, out=%d, vol=%f\n", __FUNCTION__, atoi(out), atof(vol));
@@ -1500,10 +1509,23 @@ static void formShowInfo(webs_t wp, char_t *path, char_t *query)
     int i,j;
     void *p=NULL;
     
-    (VOL_OP*)p = dspInfo.vol;
-    for(i=0;i<3;i++,p+=1)
-        printf("vol %d,%f,%d,%d,\n",p->Ch,p->vol.Gain, p->vol.Pol,p->vol.Mute);
+    //showInputVol(dspInfo.vol);
+	//showOutputVol(dspInfo.outVol);
+	//showOutDly(dspInfo.outDly);
+	//showAchEQ(dspInfo.achEQ);
+	//showBchEQ(dspInfo.bchEQ);
+	//showLimit(dspInfo.limit);
+	//show3D(dspInfo.m3D);
+	//showSct(dspInfo.sct);
+	//showHLpf(dspInfo.hpf, 1);
+	//showHLpf(&(dspInfo.lpf), 0);
+	//showAD(&(dspInfo.ad));
+	//showCrossbar1(dspInfo.crossbar1);
+	
+	showCrossbar1(rDspInfo->crossbar1);
 
+	
+#if 0
     (EQOP_STR*)p = dspInfo.achEQ;
     for(i=0;i<48;i++,p+=1)
         printf("EQ %d,%d,%f,%f,%d,%d,%d,\n",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
@@ -1563,7 +1585,7 @@ static void formShowInfo(webs_t wp, char_t *path, char_t *query)
     (fp32 *)p = dspInfo.outVol;
     for(i=0;i<6;i++,p+=1) 
         printf(tmp,"outVol %f,\n",*p);
-
+#endif
 }
 
 
@@ -1577,7 +1599,7 @@ static void formShowInfo(webs_t wp, char_t *path, char_t *query)
  */
 void repACHEQ(EQOP_STR *p)
 {
-    unsigned char Ch=0,no=0;
+    unsigned char Ch=0, no = p->no;
  
     switch (p->Ch) {
     case 0:Ch = 0; break;
@@ -1605,6 +1627,7 @@ void repACHEQ(EQOP_STR *p)
  */
 void repBCHEQ(EQOP_STR *p)
 {
+	if (p->Ch >= 2 || p->no >= 8) return;
     dspInfo.bchEQ[p->Ch][p->no].peq.Q = p->peq.Q;
     dspInfo.bchEQ[p->Ch][p->no].peq.Gain = p->peq.Gain;
     dspInfo.bchEQ[p->Ch][p->no].peq.Fc = p->peq.Fc;
@@ -1790,6 +1813,22 @@ void repSctDepth(unsigned char Ch, unsigned char hbl, float depth)
     }
 }
 
+void repSctMix(unsigned char Ch, float mixer[4])
+{
+	if (Ch >= 2) return;
+	memcpy(dspInfo.sct[Ch].mix,mixer,sizeof(mixer)*4);	
+	//dspInfo.sct[Ch].Ch = Ch;
+}
+
+void repSctEn(unsigned char Ch, uint8_t en)
+{
+	if (Ch >= 2) return;
+	dspInfo.sct[Ch].en = en;
+	dspInfo.sct[Ch].Ch = Ch;
+}
+
+
+
 /******************************************************************************/
 /*   by qmd 2014.9.26
  *  Test form for posted data (in-memory CGI). This will be called when the
@@ -1797,7 +1836,7 @@ void repSctDepth(unsigned char Ch, unsigned char hbl, float depth)
  */
 void repHPF(CHanHLPF_STR *p)
 {
-    if (p->Ch >=7) return;
+    if (p->Ch >= 6) return;
     dspInfo.hpf[p->Ch].Ch = p->Ch;
     dspInfo.hpf[p->Ch].xpf.Fc = p->xpf.Fc;
     dspInfo.hpf[p->Ch].xpf.Type = p->xpf.Type;
@@ -1826,6 +1865,7 @@ void repLPF(CHanHLPF_STR *p)
  */
 void repAD(AnaOrDigSrc_STR *p)
 {
+	if (p->en >= 3) return;
     dspInfo.ad.en = p->en;
     dspInfo.ad.mixer = p->mixer;
 }
@@ -1837,6 +1877,7 @@ void repAD(AnaOrDigSrc_STR *p)
  */
 void repCrossBar(Crossbar_STR *p)
 {
+	if (p->in >= 2 || p->out >= 6) return;
     dspInfo.crossbar1[p->in][p->out].in = p->in;
     dspInfo.crossbar1[p->in][p->out].out = p->out;
     dspInfo.crossbar1[p->in][p->out].rd = p->rd;

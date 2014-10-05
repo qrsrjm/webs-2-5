@@ -428,6 +428,152 @@ int main()
 
 #endif
 
+#if 1 //test info show
+
+void showInputVol(VOL_OP *p)
+{
+	int i;
+    for(i=0;i<3;i++,p+=1)
+        printf("vol_i %d,%f,%d,%d,\n",i,p->Ch,p->vol.Gain, p->vol.Pol,p->vol.Mute);
+}
+
+void showOutputVol(fp32 *p)
+{
+	int i;
+    for(i=0;i<6;i++,p+=1)
+		printf("outVol_%d %f,\n",i,*p);
+}
+
+void showOutDly(Outdly *p)
+{
+	int i;
+    for(i=0;i<6;i++,p+=1)
+        printf("outDly_%d %d,%f,%d,\n",i,p->Ch,p->delay.Dly,p->delay.en);
+}
+
+void showEQ(EQOP_STR *p)
+{
+    int i;
+    for(i=0;i<1;i++)        // 1¸ö
+    {
+        printf("%d,%d,%f,%f,%d,%d,%d,\n",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        //sprintf(tmp,"EQ%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+    }
+}
+
+void showAchEQ(EQOP_STR *p)
+{
+	 int i;	 
+	 for(i=0;i<48;i++,p+=1)	{//48¸ö
+		printf("i=%d ",i);
+		showEQ(p);
+	 }
+}
+
+void showBchEQ(EQOP_STR p[][7])
+{
+	 int i,j;	 
+	 for(i=0;i<2;i++)
+     for(j=0;j<7;j++) {
+	 	printf("ch=%d no=%d ",i,j);
+	 	showEQ(&(p[i][j]));
+     }
+}
+
+
+void showLimit(LimiterOP_STR *p)
+{
+	int i;
+    for(i=0;i<6;i++,p+=1)
+        printf("limit_%d %d,%f,%f,%f,%f,%d,\n",i,p->Ch,p->limiter.T2,p->limiter.k2,p->limiter.Attack,p->limiter.Release,p->limiter.en);
+}
+
+void show3D(Music3DOp_STR *p)
+{
+	int i;
+    for(i=0;i<2;i++,p+=1)     
+        printf("3d_%d %d,%f,%d,%f,%f,%f,%f,%d,\n",i,p->Ch,p->delay.Dly,p->delay.en,p->mix[0],p->mix[1],p->mix[2],p->mix[3],p->en);
+}
+
+void showSctHLpf(HLPF_STR *p)
+{
+	printf("hlpf %d,%d,%d,\n",p->Fc,p->Type,p->en);
+}
+void showSctBpf(BPF_STR *p)
+{
+	printf("bpf %d,%d,%d,%d,\n",p->Fp,p->Fs,p->Type,p->en);
+}
+
+void showAgc(DRC_STR *p)
+{
+    printf("agc %f,%f,%f,%f,%d,\n",p->T2,p->k2,p->Attack,p->Release,p->en);
+}
+
+void showSct(SCTOP_STR *p)
+{
+	int i;
+    for(i=0;i<2;i++,p+=1) {
+        printf("SCT_%d %d,%d,vol %f,%f,%f,mix=%f,%f,%f,%f,",i,
+			p->Ch,p->en,p->hVolDepth,p->bVolDepth,p->lVolDepth,
+			p->mix[0],p->mix[1],p->mix[2],p->mix[3]);
+		showSctHLpf(&(p->hpf));
+		showSctBpf(&(p->bpf));
+		showSctHLpf(&(p->lpf));
+		showAgc(&(p->AGChp));
+		showAgc(&(p->AGCbp));
+		showAgc(&(p->AGClp));
+	}
+}
+
+void showHLpf(CHanHLPF_STR *p, uint8_t hl)
+{
+	int i;
+	if (hl) {
+	    for(i=0;i<6;i++,p+=1) {			
+			showSctHLpf(&(p->xpf));
+			printf(" Ch=%d\n",p->Ch);
+		}
+	}else{
+		showSctHLpf(&(p->xpf));
+		printf(" Ch=%d\n",p->Ch);
+	}
+}
+
+void showAD(AnaOrDigSrc_STR *p)
+{
+	printf("ad %d,%f,\n",p->en,p->mixer);
+}
+
+
+void showCrossbar1(Crossbar_STR *p)
+{
+	int i;
+	for(i=0;i<12;i++,p+=1)
+		printf("crossbar_%d %d,%d,%f,\n",i,p->in,p->out,p->mix);
+}
+
+
+
+
+
+#endif //test info show
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

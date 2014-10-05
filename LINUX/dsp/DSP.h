@@ -255,7 +255,11 @@ int DspAGC(uint8 SCT_Ch, DRC_STR AGC);
 void DspSetSctAgc(uint8_t type, uint8_t en, fp32 T2, fp32 k2, fp32 attack, fp32 release, uint8_t Ch);
 
 
-void DspSctEn(float mixer[], uint8_t Ch);
+void DspSctEn(uint8_t en, uint8_t Ch);
+
+//void DspSctEn(float mixer[], uint8_t Ch);
+void DspSctMix(float mixer[], uint8_t Ch);
+
 
 /*
 ***************************************************************************************************

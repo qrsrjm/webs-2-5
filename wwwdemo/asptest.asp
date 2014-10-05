@@ -284,13 +284,14 @@
 	<hr/>
 
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
-	<h1>GoForm SctMixer</h1> 
+	<h1>GoForm Sct en & Mixer</h1> 
 	<form name="SctMixer" action="/goform/formSctMixer" method="post" target="rfFrame">
+		Ch:  <input type="text"  name="Ch"/><br/>
+		en   :  <input type="text"  name="en"/><br/>
 		-->   :  <input type="text"  name="mix0"/><br/>
 		--> hpf :  <input type="text"  name="mix1"/><br/>
 		--> bpf :  <input type="text"  name="mix2"/><br/>
-		--> lpf :  <input type="text"  name="mix3"/><br/>
-		Ch:  <input type="text"  name="Ch"/><br/>
+		--> lpf :  <input type="text"  name="mix3"/><br/>	
 		     <input name="" type="submit"/>
 	</form>
 	<hr/>

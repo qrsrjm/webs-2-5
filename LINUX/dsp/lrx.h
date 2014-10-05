@@ -266,7 +266,7 @@ typedef struct SCTOP
 	float hVolDepth;
     float bVolDepth;
     float lVolDepth;
-	float mix[3];//多进一出路由系数,最新
+	float mix[4];//多进一出路由系数,最新
 	uint8_t en;//使能，en=1,en=0关闭
 	uint8_t Ch;//通道索引Ch={0,1}
 }SCTOP_STR;
