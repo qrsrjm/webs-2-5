@@ -848,8 +848,8 @@ static void firmwareDownload()
  */
 static void initArchive()
 {
-    char_t  *fileName;
-    fileName =    websGetVar(wp, T("fileName"), T("default.txt"));    
+    char_t  *fileName = "default.txt";
+    //fileName =    websGetVar(wp, T("fileName"), T("default.txt"));    
 
     FILE *fp = fopen(fileName,"r");
     if (fp == NULL) {
@@ -857,11 +857,76 @@ static void initArchive()
         return;
     }
     
-    //if(first) {
-    //    first = 0;
-    //    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
-    //}
     int rt = fread(rDspInfo,1,sizeof(STR_DSP),fp);
+	memcpy(&dspInfo,rDspInfo,sizeof(rDspInfo));
+
+	//AD
+	DspAorDChanMixer(&(rDspInfo->ad));
+	
+	//input vol
+	int i,j;
+	for(i=0;i<3;i++)
+		DspGain(&(rDspInfo->vol[i]));
+
+	//3D
+	for(i=0;i<2;i++)
+		Dsp3DMusicDelay(rDspInfo->m3D[i].delay, rDspInfo->m3D[i].Ch);
+	Dsp3DMusicEn(rDspInfo->m3D[i].en, rDspInfo->m3D[i].Ch);
+
+	//SCT
+	for(i=0;i<2;i++) {
+		DspSctHp(rDspInfo->sct[i].Ch, rDspInfo->sct[i].hpf);
+		DspSctLp(rDspInfo->sct[i].Ch, rDspInfo->sct[i].lpf);
+		DspSctBp(rDspInfo->sct[i].Ch, rDspInfo->sct[i].bpf);
+		
+		DspSetSctAgc(0,rDspInfo->sct[i].AGChp,rDspInfo->sct[i].Ch);		
+		DspSetSctAgc(1,rDspInfo->sct[i].AGCbp,rDspInfo->sct[i].Ch);
+		DspSetSctAgc(2,rDspInfo->sct[i].AGClp,rDspInfo->sct[i].Ch);	
+		
+		DspSetSctDepth(0, rDspInfo->sct[i].hVolDepth, rDspInfo->sct[i].Ch);
+		DspSetSctDepth(1, rDspInfo->sct[i].bVolDepth, rDspInfo->sct[i].Ch);
+		DspSetSctDepth(2, rDspInfo->sct[i].lVolDepth, rDspInfo->sct[i].Ch);
+	}
+
+	//crossbar1
+	for(i=0;i<2;i++) {
+	for(i=0;i<6;i++)
+    	DspMixerSet(1, rDspInfo->crossbar1[i][j].in, rDspInfo->crossbar1[i][j].out, rDspInfo->crossbar1[i][j].mix);
+	}
+
+	//output vol
+	for(i=0;i<6;i++) {
+		volOutput(0, i, rDspInfo->outVol[i]);
+	}
+	
+	//BCHEQ
+	for(i=0;i<2;i++) {
+	for(i=0;i<7;i++)
+		DspBCHPEQ(&(rDspInfo->bchEQ[i][j]));		
+	}
+
+	//ACHEQ
+	for(i=0;i<48;i++) {
+		DspACHPEQ(&(rDspInfo->achEQ[i]));
+	}
+
+	//hpf
+	for(i=0;i<6;i++) {
+		if (i == 4) continue;
+		DspACHBp_HP(&(rDspInfo->hpf[i]));
+	}
+
+	//bpf
+	DspACHBp_BP(&(rDspInfo->bpf), rDspInfo->bpf.Ch);
+
+	//limit
+	for(i=0;i<6;i++) {
+		DspLimiter(&(rDspInfo->limit[i]));
+	}
+
+	//output dly
+	for(i=0;i<6;i++)
+		DspOutDelay(&(rDspInfo->outDly[i]));
 
     printf("firmwareDownload finish\n");
 }
