@@ -90,6 +90,7 @@ static void formACHEQ(webs_t wp, char_t *path, char_t *query);
 static void formBCHEQ(webs_t wp, char_t *path, char_t *query);
 static void formHPF(webs_t wp, char_t *path, char_t *query);
 static void formLPF(webs_t wp, char_t *path, char_t *query);
+static void formBPF(webs_t wp, char_t *path, char_t *query);
 
 static void formLIMT(webs_t wp, char_t *path, char_t *query);
 static void formDelay(webs_t wp, char_t *path, char_t *query);
@@ -113,6 +114,7 @@ static void formVuDetect(webs_t wp, char_t *path, char_t *query);
 static void formSave(webs_t wp, char_t *path, char_t *query);
 static void formRead(webs_t wp, char_t *path, char_t *query);
 static void formShowInfo(webs_t wp, char_t *path, char_t *query);
+static void formAllByPass(webs_t wp, char_t *path, char_t *query);
 
 void repACHEQ(EQOP_STR *p);
 void repBCHEQ(EQOP_STR *p);
@@ -132,7 +134,9 @@ void repAD(AnaOrDigSrc_STR *p);
 void repCrossBar(Crossbar_STR *p);
 void repOutVol(uint8_t out, fp32 vol);
 void repSctEn(unsigned char Ch, uint8_t en);
+void repBPF(BPF_STR *p, uint8 Ch);
 
+static void firmwareDownload();
 
 
 /*********************************** Code *************************************/
@@ -155,6 +159,11 @@ int main(int argc, char** argv)
     #else
     rDspInfo = &dspInfo;
     #endif
+/*
+*    2014.10.6
+*/
+    firmwareDownload();
+    
 /*
  *	Initialize the memory allocator. Allow use of malloc and start
  *	with a 60K heap.  For each page request approx 8KB is allocated.
@@ -350,6 +359,7 @@ static int initWebs(int demo)
 	websFormDefine(T("formBCHEQ"), formBCHEQ); 
 	websFormDefine(T("formHPF"), formHPF);   
 	websFormDefine(T("formLPF"), formLPF); 
+	websFormDefine(T("formBPF"), formBPF); 
 	websFormDefine(T("formLIMT"), formLIMT);
 	websFormDefine(T("formDelay"), formDelay);
 	websFormDefine(T("formVol"), formVol);
@@ -372,6 +382,7 @@ static int initWebs(int demo)
 	websFormDefine(T("formSave"), formSave);
 	websFormDefine(T("formRead"), formRead);
     websFormDefine(T("formShowInfo"), formShowInfo);
+    websFormDefine(T("formAllByPass"), formAllByPass);
 
 	
 /*
@@ -818,6 +829,42 @@ static void formTest(webs_t wp, char_t *path, char_t *query)
 	websDone(wp, 200);
 }
 
+/******************************************************************************/
+/*   by qmd 2014.10.6
+ *	Test form for posted data (in-memory CGI). This will be called when the
+ *	form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
+ */
+static void firmwareDownload()
+{
+    DapHwInit();
+    DspAllByPass();
+    printf("firmwareDownload finish\n");
+}
+
+/******************************************************************************/
+/*   by qmd 2014.10.6
+ *	Test form for posted data (in-memory CGI). This will be called when the
+ *	form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
+ */
+static void initArchive()
+{
+    char_t  *fileName;
+    fileName =    websGetVar(wp, T("fileName"), T("default.txt"));    
+
+    FILE *fp = fopen(fileName,"r");
+    if (fp == NULL) {
+        printf("can't open default.txt\n");
+        return;
+    }
+    
+    //if(first) {
+    //    first = 0;
+    //    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
+    //}
+    int rt = fread(rDspInfo,1,sizeof(STR_DSP),fp);
+
+    printf("firmwareDownload finish\n");
+}
 
 /******************************************************************************/
 /*   by qmd 2014.9.20
@@ -826,12 +873,23 @@ static void formTest(webs_t wp, char_t *path, char_t *query)
  */
 static void formDlownload(webs_t wp, char_t *path, char_t *query)
 {
-	//open_fd_i2c();
+	printf("formDlownload()\n");
 	DapHwInit();
-    DspFunModInit();
-    
+    //DspFunModInit();
+    DspAllByPass();
     //readAllHLpfEQ();
     //testMUX();
+}
+
+
+/******************************************************************************/
+/*   by qmd 2014.9.20
+ *  Test form for posted data (in-memory CGI). This will be called when the
+ *  form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
+ */
+static void formAllByPass(webs_t wp, char_t *path, char_t *query)
+{
+    DspAllByPass();
 }
 
 
@@ -964,6 +1022,36 @@ static void formLPF(webs_t wp, char_t *path, char_t *query)
 
 	printf("%s> Fc=%d,Type=%d,En=%d,Ch=%d\n",__FUNCTION__,		  
 		atoi(Fc),atoi(Type),atoi(En),atoi(Ch));
+}
+
+
+/******************************************************************************/
+/*	 by qmd 2014.10.6
+ *	Test form for posted data (in-memory CGI). This will be called when the
+ *	form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
+ */
+static void formBPF(webs_t wp, char_t *path, char_t *query)
+{
+	char_t	*Fp, *Fs, *Type, *En, *Ch;
+
+	Fp =   websGetVar(wp, T("Fp"), T("0")); 	
+	Fs =   websGetVar(wp, T("Fs"), T("0")); 
+	Type=  websGetVar(wp, T("Type"), T("0"));	  
+	En =   websGetVar(wp, T("En"), T("0"));  
+	Ch= websGetVar(wp, T("Ch"), T("0"));	
+
+	struct bpfstr *bp = (struct bpfstr*)malloc(sizeof(struct bpfstr));
+	bp->Fp = atoi(Fp);
+	bp->Fs = atoi(Fs);
+	bp->Type = atoi(Type);
+	bp->en = atoi(En);
+
+    repBPF(bp, atoi(Ch));
+    DspACHBp_BP(bp, atoi(Ch));
+
+	printf("%s> Fp=%d,Fs=%d,Type=%d,En=%d,Ch=%d\n",__FUNCTION__,		  
+		atoi(Fp),atoi(Fs),atoi(Type),atoi(En),atoi(Ch));    
+    free(bp);
 }
 
 
@@ -1112,9 +1200,17 @@ static void form3DDelay(webs_t wp, char_t *path, char_t *query)
 static void form3DEn(webs_t wp, char_t *path, char_t *query)
 {
 	char_t	*En, *Ch;
-		 
+	float mixer[4]={0};
+    
 	En =	websGetVar(wp, T("En"), T("0"));	 
 	Ch= 	websGetVar(wp, T("Ch"), T("0"));
+
+    if (0 == atoi(En)) {
+	    mixer[0]=1.0; mixer[1]=mixer[2]=mixer[3] = 0.0;
+    } else if (1 == atoi(En)) {
+        mixer[0]=0.0; mixer[1]=mixer[2]=mixer[3] = 1.0;
+    }
+    rep3DMix(atoi(Ch),mixer);
 
     rep3DEn(atoi(Ch), atoi(En));
 	Dsp3DMusicEn(atoi(En), atoi(Ch));
@@ -1219,8 +1315,9 @@ static void formAGC(webs_t wp, char_t *path, char_t *query)
     
     DRC_STR agc; agc.T2=atof(T2); agc.k2=atof(k2); agc.Attack=atof(attack); agc.Release=atof(release); agc.en=atoi(En);
     repSctAgc(atoi(Ch),atoi(Type),&agc);
-    DspSetSctAgc(atoi(Type),atoi(En), atof(T2),atof(k2),atof(attack),atof(release),atoi(Ch));
-		
+    //DspSetSctAgc(atoi(Type),atoi(En), atof(T2),atof(k2),atof(attack),atof(release),atoi(Ch));
+	DspSetSctAgc(atoi(Type),agc,atoi(Ch));
+    
 	printf("%s> T2=%f,k2=%f,attack=%f,release=%f,Type=%d,En=%d,Ch=%d\n",__FUNCTION__,		  
 		atof(T2),atof(k2),atof(attack),atof(release),atoi(Type),atoi(En),atoi(Ch));
 }
@@ -1461,18 +1558,17 @@ static void formSave(webs_t wp, char_t *path, char_t *query)
     uint8 outVal[8]={0};
 
     char_t  *fileName;
-    fileName =    websGetVar(wp, T("fileName"), T("0"));
+    fileName =    websGetVar(wp, T("fileName"), T("default.txt"));
     
     FILE *fp = fopen(fileName,"w");
     if (fp == NULL) {
-        printf("can't open default.txt\n");
+        printf("can't open %s\n",fileName);
         return;
     }
-    fwrite(&dspInfo,1,sizeof(dspInfo),fp);
+    int rt = fwrite(&dspInfo,1,sizeof(dspInfo),fp);
     
     fclose(fp);
-	printf("%s> %x,%x,%x,%x,%x,%x,%x,%x\n", __FUNCTION__,
-        outVal[0],outVal[1],outVal[2],outVal[3],outVal[4],outVal[5],outVal[6],outVal[7]);
+	printf("%s> save %s ,rt=%d\n", __FUNCTION__,fileName,rt);
 }
 
 
@@ -1486,7 +1582,11 @@ static int first = 1;
 static void formRead(webs_t wp, char_t *path, char_t *query)
 {    
     uint8 outVal[8]={0};
-    FILE *fp = fopen("default.txt","r");
+    
+    char_t  *fileName;
+    fileName =    websGetVar(wp, T("fileName"), T("default.txt"));    
+
+    FILE *fp = fopen(fileName,"r");
     if (fp == NULL) {
         printf("can't open default.txt\n");
         return;
@@ -1497,6 +1597,7 @@ static void formRead(webs_t wp, char_t *path, char_t *query)
     //    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
     //}
     int rt = fread(rDspInfo,1,sizeof(STR_DSP),fp); 
+    printf("read rt=%d read %s\n",rt,fileName);
 }
 
 /******************************************************************************/
@@ -1506,9 +1607,6 @@ static void formRead(webs_t wp, char_t *path, char_t *query)
  */
 static void formShowInfo(webs_t wp, char_t *path, char_t *query)
 {    
-    int i,j;
-    void *p=NULL;
-    
     //showInputVol(dspInfo.vol);
 	//showOutputVol(dspInfo.outVol);
 	//showOutDly(dspInfo.outDly);
@@ -1522,70 +1620,21 @@ static void formShowInfo(webs_t wp, char_t *path, char_t *query)
 	//showAD(&(dspInfo.ad));
 	//showCrossbar1(dspInfo.crossbar1);
 	
-	showCrossbar1(rDspInfo->crossbar1);
-
 	
-#if 0
-    (EQOP_STR*)p = dspInfo.achEQ;
-    for(i=0;i<48;i++,p+=1)
-        printf("EQ %d,%d,%f,%f,%d,%d,%d,\n",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+    showInputVol(rDspInfo->vol);
+	showOutputVol(rDspInfo->outVol);
+	showOutDly(rDspInfo->outDly);
+	showAchEQ(rDspInfo->achEQ);
+	showBchEQ(rDspInfo->bchEQ);
+	showLimit(rDspInfo->limit);
+	show3D(rDspInfo->m3D);
+	showSct(rDspInfo->sct);
+	showHLpf(rDspInfo->hpf, 1);
+	//showHLpf(&(rDspInfo->lpf), 0);
+	showBpf(&(rDspInfo->bpf));
+	showAD(&(rDspInfo->ad));
+    showCrossbar1(rDspInfo->crossbar1);
 
-    for(i=0;i<2;i++)
-    for(j=0;j<7;j++) {
-        (EQOP_STR*)p = &(dspInfo.bchEQ[i][j]);
-        printf("EQ %d,%d,%f,%f,%d,%d,%d,\n",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
-    }
-
-    (Outdly *)p = dspInfo.outDly;
-    for(i=0;i<6;i++,p+=1)
-        printf("outDly %d,%f,%d,\n",p->Ch,p->delay.Dly,p->delay.en);
-
-    (LimiterOP_STR *)p = dspInfo.limit;
-    for(i=0;i<6;i++,p+=1)
-        printf("limit %d,%f,%f,%f,%f,%d,\n",p->Ch,p->limiter.T2,p->limiter.k2,p->limiter.Attack,p->limiter.Release,p->limiter.en);
-
-    (Music3DOp_STR *)p = dspInfo.m3D;
-    for(i=0;i<2;i++,p+=1)     
-        printf("3d %d,%f,%d,%f,%f,%f,%f,%d,\n",p->Ch,p->delay.Dly,p->delay.en,p->mix[0],p->mix[1],p->mix[2],p->mix[3],p->en);
-
-
-    for(i=0;i<2;i++) {
-        (SCTOP_STR *)p = &(dspInfo.sct[i]);
-        printf("SCT %d,%d,vol %f,%f,%f,mix=%f,%f,%f,%f",p->Ch,p->en,p->hVolDepth,p->bVolDepth,p->lVolDepth,p->mix[0],p->mix[1],p->mix[2],p->mix[3]);
-    }
-    
-    for(i=0;i<2;i++) {
-        (HLPF_STR *)p = &(dspInfo.sct[i].hpf);
-        printf("sct[%d] hpf %d,%d,%d,\n",i,p->Fc,p->Type,p->en);
-    }
-    for(i=0;i<2;i++) {
-        (HLPF_STR *)p = &(dspInfo.sct[i].lpf);
-        printf("sct[%d] lpf %d,%d,%d,\n",i,p->Fc,p->Type,p->en);
-    }
-    for(i=0;i<2;i++) {
-        (BPF_STR *)p = &(dspInfo.sct[i].bpf);
-        printf("bpf[%d] %d,%d,%d,%d,\n",i,p->Fp,p->Fs,p->Type,p->en);
-    }
-
-    (HLPF_STR *)p = dspInfo.hpf;
-    for(i=0;i<6;i++,p+=1)
-        printf("hpf %d,%d,%d,\n",p->Fc,p->Type,p->en);
-
-    (HLPF_STR *)p = dspInfo.lpf;
-        printf("lpf %d,%d,%d,\n",p->Fc,p->Type,p->en);
-
-
-    (AnaOrDigSrc_STR *)p = &(dspInfo.ad);
-        printf("ad%d,%f,\n",p->en,p->mixer);
-
-    (Crossbar_STR *)p = dspInfo.crossbar1;
-        for(i=0;i<12;i++,p+=1)
-            printf("crossbar %d,%d,%f,\n",p->in,p->out,p->mix);
-
-    (fp32 *)p = dspInfo.outVol;
-    for(i=0;i<6;i++,p+=1) 
-        printf(tmp,"outVol %f,\n",*p);
-#endif
 }
 
 
@@ -1742,6 +1791,10 @@ void rep3DEn(unsigned char Ch, unsigned char en)
 void repSctHLpf(unsigned char Ch, unsigned char hl,HLPF_STR *p)
 {
     if (Ch >=2) return;
+    
+    dspInfo.sct[Ch].Ch = Ch;
+    dspInfo.sct[Ch].en = p->en;
+    
     if (hl == 0) {
         dspInfo.sct[Ch].hpf.Fc = p->Fc;
         dspInfo.sct[Ch].hpf.Type = p->Type;
@@ -1761,6 +1814,10 @@ void repSctHLpf(unsigned char Ch, unsigned char hl,HLPF_STR *p)
 void repSctBpf(unsigned char Ch, BPF_STR *p)
 {
     if (Ch >=2) return;
+    
+    dspInfo.sct[Ch].Ch = Ch;
+    dspInfo.sct[Ch].en = p->en;
+    
     dspInfo.sct[Ch].bpf.Fp = p->Fp;
     dspInfo.sct[Ch].bpf.Fs = p->Fs;
     dspInfo.sct[Ch].hpf.Type = p->Type;
@@ -1775,6 +1832,9 @@ void repSctBpf(unsigned char Ch, BPF_STR *p)
 void repSctAgc(unsigned char Ch, unsigned char hbl, DRC_STR *p)
 {
     if (Ch >=2) return;
+    dspInfo.sct[Ch].Ch = Ch;
+    dspInfo.sct[Ch].en = p->en;
+    
     if (hbl == 0) {    
         dspInfo.sct[Ch].AGChp.T2 = p->T2;
         dspInfo.sct[Ch].AGChp.k2 = p->k2;
@@ -1804,6 +1864,10 @@ void repSctAgc(unsigned char Ch, unsigned char hbl, DRC_STR *p)
 void repSctDepth(unsigned char Ch, unsigned char hbl, float depth)
 {
     if (Ch >=2) return;
+    
+    dspInfo.sct[Ch].Ch = Ch;
+    dspInfo.sct[Ch].en = 1;
+    
     if (hbl == 0) {
         dspInfo.sct[Ch].hVolDepth = depth;
     } else if (hbl == 1) {
@@ -1817,7 +1881,12 @@ void repSctMix(unsigned char Ch, float mixer[4])
 {
 	if (Ch >= 2) return;
 	memcpy(dspInfo.sct[Ch].mix,mixer,sizeof(mixer)*4);	
-	//dspInfo.sct[Ch].Ch = Ch;
+	dspInfo.sct[Ch].Ch = Ch;
+    if (0 == (int32)(mixer[0] * 0x00800000)) {
+        dspInfo.sct[Ch].en = 0;
+    } else {
+        dspInfo.sct[Ch].en = 1;
+    }
 }
 
 void repSctEn(unsigned char Ch, uint8_t en)
@@ -1857,6 +1926,23 @@ void repLPF(CHanHLPF_STR *p)
         dspInfo.lpf.xpf.en = p->xpf.en;
     }
 }
+
+/******************************************************************************/
+/*   by qmd 2014.10.6
+ *  Test form for posted data (in-memory CGI). This will be called when the
+ *  form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
+ */
+void repBPF(BPF_STR *p, uint8 Ch)
+{
+    if (Ch != 4) return;
+    dspInfo.bpf.Ch = Ch;
+    dspInfo.bpf.Fp = p->Fp;
+    dspInfo.bpf.Fs = p->Fs;
+    dspInfo.bpf.Type = p->Type;
+    dspInfo.bpf.en = p->en;
+
+}
+
 
 /******************************************************************************/
 /*   by qmd 2014.9.26

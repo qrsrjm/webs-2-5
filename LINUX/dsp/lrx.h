@@ -157,6 +157,17 @@ typedef struct bpfstr
 	uint8_t reserved2;  // 数据字节对齐2
 } BPF_STR;
 
+typedef struct bpfstrOp
+{
+	uint16_t Fp;
+	uint16_t Fs;
+	int8_t  Type;
+	uint8_t en;
+	uint8_t Ch;  // 数据字节对齐1
+	uint8_t reserved1;  // 数据字节对齐2
+} BPF_OP;
+
+
 /**
  * The detail description.
  */
@@ -390,6 +401,7 @@ typedef struct
     SCTOP_STR    sct[2];        //104 * 2
     CHanHLPF_STR  hpf[6];       //8 * 6
     CHanHLPF_STR  lpf;       //8 * 2
+    BPF_OP        bpf;
     AnaOrDigSrc_STR   ad;       //8
     Crossbar_STR    crossbar1[2][6];  //8      总输入输出路由
     float   outVol[6];

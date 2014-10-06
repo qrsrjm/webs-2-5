@@ -434,7 +434,7 @@ void showInputVol(VOL_OP *p)
 {
 	int i;
     for(i=0;i<3;i++,p+=1)
-        printf("vol_i %d,%f,%d,%d,\n",i,p->Ch,p->vol.Gain, p->vol.Pol,p->vol.Mute);
+        printf("vol_%d %d,%f,%d,%d,\n",i,p->Ch,p->vol.Gain, p->vol.Pol,p->vol.Mute);
 }
 
 void showOutputVol(fp32 *p)
@@ -537,6 +537,14 @@ void showHLpf(CHanHLPF_STR *p, uint8_t hl)
 		showSctHLpf(&(p->xpf));
 		printf(" Ch=%d\n",p->Ch);
 	}
+}
+
+void showBpf(BPF_OP *p)
+{   
+    int i;
+    //for(i=0;i<2;i++,p+=1) {
+	    printf("bpf %d,%d,%d,%d,%d,\n",p->Ch,p->Fp,p->Fs,p->Type,p->en);
+    //}
 }
 
 void showAD(AnaOrDigSrc_STR *p)

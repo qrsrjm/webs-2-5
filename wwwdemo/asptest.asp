@@ -91,6 +91,14 @@
 	<hr/>
 
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
+		<h1>GoForm all bypass</h1> 
+		<form name="bypass" action="/goform/formAllByPass" method="post" target="rfFrame">
+			     <input name="" type="submit"/>
+		</form>
+	<hr/>
+
+
+	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 		<h1>GoForm show</h1> 
 		<form name="show" action="/goform/formShowInfo" method="post" target="rfFrame">
 			     <input name="" type="submit"/>
@@ -138,6 +146,7 @@
 
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 	<h1>GoForm HPF</h1> 
+	<h2>ch=4 not have hpf.<h2/>
 	<form name="hpf" action="/goform/formHPF" method="post" target="rfFrame">
 		Fc:  <input type="text"  name="Fc"/><br/>
 		Type:<input type="text"  name="Type"/><br/>
@@ -146,8 +155,8 @@
 		     <input name="" type="submit"/>
 	</form>
 	<hr/>
-
-	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
+	<!--
+	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe>
 	<h1>GoForm LPF</h1> 
 	<form name="lpf" action="/goform/formLPF" method="post" target="rfFrame">
 		Fc:  <input type="text"  name="Fc"/><br/>
@@ -157,7 +166,20 @@
 		     <input name="" type="submit"/>
 	</form>
 	<hr/>
-
+	-->
+	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
+	<h1>GoForm BPF</h1> 
+	<h2>ch=4</h2>
+	<form name="bpf" action="/goform/formBPF" method="post" target="rfFrame">
+		Fp:  <input type="text"  name="Fp"/><br/>
+		Fs:  <input type="text"  name="Fs"/><br/>
+		Type:<input type="text"  name="Type"/><br/>
+		En:  <input type="text"  name="En"/><br/>
+		Ch:  <input type="text"  name="Ch"/><br/>
+		     <input name="" type="submit"/>
+	</form>
+	<hr/>
+	
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 	<h1>GoForm limt</h1> 
 	<form name="limt" action="/goform/formLIMT" method="post" target="rfFrame">
@@ -204,6 +226,7 @@
 
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 	<h1>GoForm 3DEn</h1> 
+	<h2>ch = 0,1</h2>
 	<form name="3DEn" action="/goform/form3DEn" method="post" target="rfFrame">
 		En:  <input type="text"  name="En"/><br/>
 		Ch:  <input type="text"  name="Ch"/><br/>
@@ -308,6 +331,7 @@
 
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 	<h1>GoForm outVol</h1> 
+	<h2>out = 0,1</h2>
 	<form name="ad" action="/goform/formOutVol" method="post" target="rfFrame">
 		out:  <input type="text"  name="out"/><br/>
 		vol:  <input type="text"  name="vol"/><br/>
@@ -322,6 +346,7 @@
 	<form  action="/goform/formSSCancel" method="post" target="rfFrame">	
 		<input type=submit value="Cancel"><br/>
 	</form>
+	<h2>type = 0:one,1:loop,2:all</h2>
 	<form name="SigSourSelectOut" action="/goform/formSigSourSelectOut" method="post" target="rfFrame">
 		in:  <input type="text"  name="in"/><br/>
 		out:  <input type="text"  name="out"/><br/>
@@ -330,13 +355,14 @@
 		2.     <input name="" type="submit"/>
 	</form>
 	<hr/>
-	
-	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
+	<!--让表单提交后不刷新页面
+	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> 
 	<h1>GoForm VuDetect</h1> 
 	<form  action="" method="post" target="rfFrame">	
 		    <input type="button" value="Vu" onClick="accept1();"/>
 	</form>
 	<hr/>
+	-->
 
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 	<h1>GoForm VuDetect</h1> 
@@ -348,6 +374,7 @@
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 	<h1>GoForm save</h1> 
 	<form name="save" action="/goform/formSave" method="post" target="rfFrame">	
+		name: <input type="text"  name="fileName"/><br/>
 		    <input  name="" type="submit"/>
 	</form>
 	<hr/>
@@ -355,6 +382,7 @@
 	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
 	<h1>GoForm read</h1> 
 	<form name="read" action="/goform/formRead" method="post" target="rfFrame">	
+	  name: <input type="text"  name="fileName"/><br/>
 		    <input  name="" type="submit"/>
 	</form>
 	<hr/>
