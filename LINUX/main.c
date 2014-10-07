@@ -35,7 +35,7 @@ void	formDefineUserMgmt(void);
 #include "dsp/DSP.h"
 #include "dsp/dataToString.h"
 
-STR_DSP *rDspInfo = NULL;
+//STR_DSP *rDspInfo = NULL;
 
 /*********************************** Locals ***********************************/
 /*
@@ -65,56 +65,65 @@ static void memLeaks();
 
 
 static int	aspTest2(int eid, webs_t wp, int argc, char_t **argv);
-
 static int	aspVol(int eid, webs_t wp, int argc, char_t **argv);
 
-static int aspGetVersion(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetOutVol(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetOutMix(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetAd(int eid, webs_t wp, int argc, char_t **argv);
+//
+static int aspGetVersion(int eid, webs_t wp, int argc, char_t **argv); //<!--版本号--->
+static int aspGetOutVol(int eid, webs_t wp, int argc, char_t **argv); // <!--输出音量--->
+static int aspGetOutMix(int eid, webs_t wp, int argc, char_t **argv); //<!--输出路由--->
+static int aspGetAd(int eid, webs_t wp, int argc, char_t **argv); //<!--模拟：0，数字输入选择：1,2--->
 static int aspGetLpf(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetHpf(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetSct(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGet3D(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetLimit(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetOutDly(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetAchEQ(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetBchEQ(int eid, webs_t wp, int argc, char_t **argv);
-static int aspGetInputVol(int eid, webs_t wp, int argc, char_t **argv);
-static int aspVuDetect(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetHpf(int eid, webs_t wp, int argc, char_t **argv); //<!--高通 （第4路没有）--->
+static int aspGetBpf(int eid, webs_t wp, int argc, char_t **argv); //<!---带通 第4路-->
+
+static int aspGetSct(int eid, webs_t wp, int argc, char_t **argv); //<!--声音补偿 (2)--->
+static int aspGet3D(int eid, webs_t wp, int argc, char_t **argv); //<!--3D (2)--->
+static int aspGetLimit(int eid, webs_t wp, int argc, char_t **argv); // <!---压限 （6）-->
+static int aspGetOutDly(int eid, webs_t wp, int argc, char_t **argv); //<!---输出延迟 (6)-->
+//static int aspGetAchEQ(int eid, webs_t wp, int argc, char_t **argv);
+static int aspGetAchEQ0(int eid, webs_t wp, int argc, char_t **argv); //<!--ach eq 0 (10)--->
+static int aspGetAchEQ1(int eid, webs_t wp, int argc, char_t **argv); //<!--ach eq 1 (10)--->
+static int aspGetAchEQ2(int eid, webs_t wp, int argc, char_t **argv); //<!--ach eq 2 (10)--->
+static int aspGetAchEQ3(int eid, webs_t wp, int argc, char_t **argv); //<!--ach eq 3 (10)--->
+static int aspGetAchEQ4(int eid, webs_t wp, int argc, char_t **argv); //<!--ach eq 4 (5)--->
+static int aspGetAchEQ5(int eid, webs_t wp, int argc, char_t **argv); //<!--ach eq 5 (3)--->
+
+static int aspGetBchEQ(int eid, webs_t wp, int argc, char_t **argv); //<!--bch eq (7*2)--->
+static int aspGetInputVol(int eid, webs_t wp, int argc, char_t **argv);  // <!-- 输入音量--->
+static int aspVuDetect(int eid, webs_t wp, int argc, char_t **argv);  //输入电平
 
 
 
-static void formDlownload(webs_t wp, char_t *path, char_t *query);
-static void formACHEQ(webs_t wp, char_t *path, char_t *query);
-static void formBCHEQ(webs_t wp, char_t *path, char_t *query);
-static void formHPF(webs_t wp, char_t *path, char_t *query);
+static void formDlownload(webs_t wp, char_t *path, char_t *query); //<!---下载固件--->
+static void formACHEQ(webs_t wp, char_t *path, char_t *query);  //<!---ACH eq- {ch=0/1/2/3/4/5, type=0/1/2, 当ch=0~3时，no=0~9, 当ch=4,no=0~4,  当ch=5,no=0~2}-->
+static void formBCHEQ(webs_t wp, char_t *path, char_t *query);  //<!--BCH eq {ch=0/1, type=0/1/2, no=0~9}---->
+static void formHPF(webs_t wp, char_t *path, char_t *query);     //<!--- 高通， 第四路没有高通--->
 static void formLPF(webs_t wp, char_t *path, char_t *query);
-static void formBPF(webs_t wp, char_t *path, char_t *query);
+static void formBPF(webs_t wp, char_t *path, char_t *query);   //<!---带通-输出的第四路 ，ch固定为4-->
 
-static void formLIMT(webs_t wp, char_t *path, char_t *query);
-static void formDelay(webs_t wp, char_t *path, char_t *query);
-static void formVol(webs_t wp, char_t *path, char_t *query);
-static void form3DDelay(webs_t wp, char_t *path, char_t *query);
-static void form3DEn(webs_t wp, char_t *path, char_t *query);
-static void form3DMixer(webs_t wp, char_t *path, char_t *query);
-static void formSctHpf(webs_t wp, char_t *path, char_t *query);
-static void formVolDepth(webs_t wp, char_t *path, char_t *query);
-static void formAGC(webs_t wp, char_t *path, char_t *query);
-static void formSctBpf(webs_t wp, char_t *path, char_t *query);
-static void formSctLpf(webs_t wp, char_t *path, char_t *query);
-static void formSctMixer(webs_t wp, char_t *path, char_t *query);
-static void formAD(webs_t wp, char_t *path, char_t *query);
-static void formSigSourSelectOut(webs_t wp, char_t *path, char_t *query);
-static void formSSCancel(webs_t wp, char_t *path, char_t *query);
-static void formSSEnable(webs_t wp, char_t *path, char_t *query);
-static void formCrossbar1(webs_t wp, char_t *path, char_t *query);
-static void formOutVol(webs_t wp, char_t *path, char_t *query);
-static void formVuDetect(webs_t wp, char_t *path, char_t *query);
-static void formSave(webs_t wp, char_t *path, char_t *query);
-static void formRead(webs_t wp, char_t *path, char_t *query);
-static void formShowInfo(webs_t wp, char_t *path, char_t *query);
-static void formAllByPass(webs_t wp, char_t *path, char_t *query);
+static void formLIMT(webs_t wp, char_t *path, char_t *query);  //<!--压限---->
+static void formDelay(webs_t wp, char_t *path, char_t *query); //<!---输出延迟--->
+static void formVol(webs_t wp, char_t *path, char_t *query);    //<!---输入音量------>
+static void form3DDelay(webs_t wp, char_t *path, char_t *query); //<!---3D delay--->
+static void form3DEn(webs_t wp, char_t *path, char_t *query);    //<!--3D  开关 [0:关，1：开]---->
+static void form3DMixer(webs_t wp, char_t *path, char_t *query);  //<!---3D 路由 （用于细调）--->
+static void formSctHpf(webs_t wp, char_t *path, char_t *query);  //<!---声音补偿 高通--->
+static void formVolDepth(webs_t wp, char_t *path, char_t *query);  //<!--声音补偿 深度   type： 选择高低带通中的哪一路的深度---->
+static void formAGC(webs_t wp, char_t *path, char_t *query);     //<!---声音补偿 AGC--->
+static void formSctBpf(webs_t wp, char_t *path, char_t *query);  //<!---声音补偿 带通--->
+static void formSctLpf(webs_t wp, char_t *path, char_t *query);  //<!---声音补偿 低通--->
+static void formSctMixer(webs_t wp, char_t *path, char_t *query); //<!---声音补偿 开关、 路由--->
+static void formAD(webs_t wp, char_t *path, char_t *query);       //<!---模拟，数字输入选择   模拟:0，数字[1,2]--->
+static void formSigSourSelectOut(webs_t wp, char_t *path, char_t *query); /*<!---测试信号源的输入选择，和测试方式type【0：选择音源输入，音源输出，是单个的，用到（in,out，type），1：循环单个输出，用到(in,total,tpye)   2: 所有通道一起输出(in,total,tpye)】in:  输入音源、 out： 输出通道、 total： 可以输出的通道总数， type ： 输出方式  操作方式：先选择数字输入，第一步按enable，保存输出路由配置，进入测试信号源  第二步，提交测试方式， 第三步退出测试信号源 按 cancel，恢复路由数据，测试信号源的音源是通过数字通道输入的--->*/
+static void formSSCancel(webs_t wp, char_t *path, char_t *query);  //测试信号源关闭
+static void formSSEnable(webs_t wp, char_t *path, char_t *query);  //测试信号源打开
+static void formCrossbar1(webs_t wp, char_t *path, char_t *query); /*<!--输出路由in: 0~1  out: 0~1   rd=0,不读寄存器，rd=1，读寄存器，在程序中固定位 1 即可操作方式：如 0进1出 【rd=1,in=0,out=1,mix=1.0】 ，0进1出关闭时 【rd=1,in=0,out=1,mix=0.0】	---->*/
+static void formOutVol(webs_t wp, char_t *path, char_t *query);   //<!---输出音量  out：输出的通道、 vol: 音量dB  --->
+static void formVuDetect(webs_t wp, char_t *path, char_t *query); //<!---输入电平--->
+static void formSave(webs_t wp, char_t *path, char_t *query);      //<!---保存存档--->
+static void formRead(webs_t wp, char_t *path, char_t *query);      //<!---读存档--->
+static void formShowInfo(webs_t wp, char_t *path, char_t *query);  //<!---显示存档--->	
+static void formAllByPass(webs_t wp, char_t *path, char_t *query); //<!---all bypass 所有模块--->
 
 void repACHEQ(EQOP_STR *p);
 void repBCHEQ(EQOP_STR *p);
@@ -137,6 +146,7 @@ void repSctEn(unsigned char Ch, uint8_t en);
 void repBPF(BPF_STR *p, uint8 Ch);
 
 static void firmwareDownload();
+static void initArchive();
 
 
 /*********************************** Code *************************************/
@@ -342,12 +352,20 @@ static int initWebs(int demo)
     
     websAspDefine(T("aspGetInputVol"), aspGetInputVol);
     websAspDefine(T("aspGetBchEQ"), aspGetBchEQ);
-    websAspDefine(T("aspGetAchEQ"), aspGetAchEQ);
+    
+    websAspDefine(T("aspGetAchEQ0"), aspGetAchEQ0);
+    websAspDefine(T("aspGetAchEQ1"), aspGetAchEQ1);
+    websAspDefine(T("aspGetAchEQ2"), aspGetAchEQ2);
+    websAspDefine(T("aspGetAchEQ3"), aspGetAchEQ3);
+    websAspDefine(T("aspGetAchEQ4"), aspGetAchEQ4);
+    websAspDefine(T("aspGetAchEQ5"), aspGetAchEQ5);
+    
     websAspDefine(T("aspGetOutDly"), aspGetOutDly);
     websAspDefine(T("aspGetLimit"), aspGetLimit);
     websAspDefine(T("aspGet3D"), aspGet3D);
     websAspDefine(T("aspGetSct"), aspGetSct);
     websAspDefine(T("aspGetHpf"), aspGetHpf);
+    websAspDefine(T("aspGetBpf"), aspGetBpf);
     websAspDefine(T("aspGetLpf"), aspGetLpf);
     websAspDefine(T("aspGetAd"), aspGetAd);
     websAspDefine(T("aspGetOutMix"), aspGetOutMix);
@@ -461,11 +479,10 @@ static int aspVuDetect(int eid, webs_t wp, int argc, char_t **argv)
 	char_t	*name;
 	int Gain;
 
-	if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
-		websError(wp, 400, T("Insufficient args\n"));
-		return -1;
-	}
-	return websWrite(wp, T("vol: %s, Gain %d"), name, Gain);
+    uint8 outVal[8]={0};
+    VuDetect(outVal);
+
+	return websWrite(wp, T("vu:%s"), outVal);
 }
 
 /******************************************************************************/
@@ -493,9 +510,8 @@ static int aspGetInputVol(int eid, webs_t wp, int argc, char_t **argv)
 }
 
 
-
 /******************************************************************************/
-/*	 by  qmd  2014.9.30
+/*	 by  qmd  2014.10.7
  *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
  *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
  *	"localhost/asp.asp" to test.
@@ -512,40 +528,141 @@ static int aspGetBchEQ(int eid, webs_t wp, int argc, char_t **argv)
 	int i,j;
     char dest[512]={0};
     memset(dest,0,512);
+    #if 0
     for(i=0;i<2;i++)
     for(j=0;j<7;j++)
         eqToStr(&(rDspInfo->bchEQ[i][j]), dest);
-
+    #endif
+    
+    bchEQToStr(rDspInfo->bchEQ, dest);
+    
     printf("%s>\n",__FUNCTION__);
     
 	return websWrite(wp, T("bcheq: %s"), dest);
 }
 
+
+
 /******************************************************************************/
-/*	 by  qmd  2014.9.30
+/*	 by  qmd  2014.10.7
  *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
  *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
  *	"localhost/asp.asp" to test.
  */
-static int aspGetAchEQ(int eid, webs_t wp, int argc, char_t **argv)
+static int aspGetAchEQ0(int eid, webs_t wp, int argc, char_t **argv)
 {
 	char_t	*name;
 	int Gain;
 
-	//if (ejArgs(argc, argv, T("%s %d"), &name, &Gain) < 2) {
-	//	websError(wp, 400, T("Insufficient args\n"));
-	//	return -1;
-	//}
 	int i,j;
-    char dest[1024*2]={0};
-    memset(dest,0,512*4);
-    for(i=0;i<48;i++)
-        eqToStr(&(rDspInfo->achEQ[i]), dest);
-
+    char dest[512]={0};
+    memset(dest,0,512);
+    achEQToStr0(rDspInfo->achEQ, dest);
     printf("%s>\n",__FUNCTION__);
     
 	return websWrite(wp, T("acheq: %s"), dest);
 }
+
+/******************************************************************************/
+/*	 by  qmd  2014.10.7
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetAchEQ1(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    achEQToStr1(&(rDspInfo->achEQ[10]), dest);
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("acheq: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.10.7
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetAchEQ2(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    achEQToStr2(&(rDspInfo->achEQ[20]), dest);
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("acheq: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.10.7
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetAchEQ3(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    achEQToStr3(&(rDspInfo->achEQ[30]), dest);
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("acheq: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.10.7
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetAchEQ4(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    achEQToStr4(&(rDspInfo->achEQ[40]), dest);
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("acheq: %s"), dest);
+}
+
+/******************************************************************************/
+/*	 by  qmd  2014.10.7
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetAchEQ5(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	int i,j;
+    char dest[512]={0};
+    memset(dest,0,512);
+    achEQToStr5(&(rDspInfo->achEQ[45]), dest);
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("acheq: %s"), dest);
+}
+
 
 
 /******************************************************************************/
@@ -590,8 +707,8 @@ static int aspGetLimit(int eid, webs_t wp, int argc, char_t **argv)
 	//	return -1;
 	//}
 	int i,j;
-    char dest[280]={0};
-    memset(dest,0,280);
+    char dest[512]={0};
+    memset(dest,0,512);
     limitToStr(rDspInfo->limit, dest);
 
     printf("%s>\n",__FUNCTION__);
@@ -701,6 +818,28 @@ static int aspGetLpf(int eid, webs_t wp, int argc, char_t **argv)
 }
 
 /******************************************************************************/
+/*	 by  qmd  2014.10.7
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+static int aspGetBpf(int eid, webs_t wp, int argc, char_t **argv)
+{
+	char_t	*name;
+	int Gain;
+
+	int i,j;
+    char dest[100]={0};
+    memset(dest,0,100);
+    BpfToStr(&(rDspInfo->bpf), dest);
+
+    printf("%s>\n",__FUNCTION__);
+    
+	return websWrite(wp, T("bpf: %s"), dest);
+}
+
+
+/******************************************************************************/
 /*	 by  qmd  2014.9.30
  *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
  *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
@@ -808,7 +947,6 @@ static int aspGetVersion(int eid, webs_t wp, int argc, char_t **argv)
  *	Test form for posted data (in-memory CGI). This will be called when the
  *	form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
  */
-
 static void formTest(webs_t wp, char_t *path, char_t *query)
 {
 	char_t	*name, *address;
@@ -838,7 +976,9 @@ static void firmwareDownload()
 {
     DapHwInit();
     DspAllByPass();
+    
     printf("firmwareDownload finish\n");
+    initArchive();
 }
 
 /******************************************************************************/
@@ -848,7 +988,8 @@ static void firmwareDownload()
  */
 static void initArchive()
 {
-    char_t  *fileName = "default.txt";
+    int i,j;
+    char_t  *fileName = "a";
     //fileName =    websGetVar(wp, T("fileName"), T("default.txt"));    
 
     FILE *fp = fopen(fileName,"r");
@@ -860,19 +1001,22 @@ static void initArchive()
     int rt = fread(rDspInfo,1,sizeof(STR_DSP),fp);
 	memcpy(&dspInfo,rDspInfo,sizeof(rDspInfo));
 
+    printf("ad\n");   
 	//AD
 	DspAorDChanMixer(&(rDspInfo->ad));
-	
+    
+    printf("input vol\n");	
 	//input vol
-	int i,j;
 	for(i=0;i<3;i++)
 		DspGain(&(rDspInfo->vol[i]));
 
+    printf("3D\n");   
 	//3D
 	for(i=0;i<2;i++)
 		Dsp3DMusicDelay(rDspInfo->m3D[i].delay, rDspInfo->m3D[i].Ch);
 	Dsp3DMusicEn(rDspInfo->m3D[i].en, rDspInfo->m3D[i].Ch);
 
+    printf("sct\n");	
 	//SCT
 	for(i=0;i<2;i++) {
 		DspSctHp(rDspInfo->sct[i].Ch, rDspInfo->sct[i].hpf);
@@ -888,47 +1032,55 @@ static void initArchive()
 		DspSetSctDepth(2, rDspInfo->sct[i].lVolDepth, rDspInfo->sct[i].Ch);
 	}
 
+    printf("crossbar\n");	
 	//crossbar1
 	for(i=0;i<2;i++) {
-	for(i=0;i<6;i++)
+	for(j=0;j<6;j++)
     	DspMixerSet(1, rDspInfo->crossbar1[i][j].in, rDspInfo->crossbar1[i][j].out, rDspInfo->crossbar1[i][j].mix);
 	}
 
+    printf("output vol\n");	
 	//output vol
 	for(i=0;i<6;i++) {
 		volOutput(0, i, rDspInfo->outVol[i]);
 	}
-	
+
+    printf("bch eq\n");	
 	//BCHEQ
 	for(i=0;i<2;i++) {
 	for(i=0;i<7;i++)
 		DspBCHPEQ(&(rDspInfo->bchEQ[i][j]));		
 	}
 
+    printf("ach eq\n");	
 	//ACHEQ
 	for(i=0;i<48;i++) {
 		DspACHPEQ(&(rDspInfo->achEQ[i]));
 	}
 
+    printf("hpf\n");	
 	//hpf
 	for(i=0;i<6;i++) {
 		if (i == 4) continue;
 		DspACHBp_HP(&(rDspInfo->hpf[i]));
 	}
 
+    printf("bpf\n");	
 	//bpf
 	DspACHBp_BP(&(rDspInfo->bpf), rDspInfo->bpf.Ch);
 
+    printf("limit\n");	
 	//limit
 	for(i=0;i<6;i++) {
 		DspLimiter(&(rDspInfo->limit[i]));
 	}
 
+    printf("output dly\n");	
 	//output dly
 	for(i=0;i<6;i++)
 		DspOutDelay(&(rDspInfo->outDly[i]));
 
-    printf("firmwareDownload finish\n");
+    printf("init finish\n");
 }
 
 /******************************************************************************/
@@ -1751,19 +1903,6 @@ void repBCHEQ(EQOP_STR *p)
     dspInfo.bchEQ[p->Ch][p->no].no = p->no;
 }
 
-/******************************************************************************/
-/*   by qmd 2014.9.25   v2.0
- *  Test form for posted data (in-memory CGI). This will be called when the
- *  form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
- */
- #if 0  //v2.0
-void repVol(VOL_STR *p)
-{
-    dspInfo.vol.Gain = p->Gain;
-    dspInfo.vol.Pol = p->Pol;
-    dspInfo.vol.Mute = p->Mute;   
-}
- #endif
 
 //v2.1
 void repVol(VOL_OP *p)
@@ -1970,7 +2109,7 @@ void repSctEn(unsigned char Ch, uint8_t en)
  */
 void repHPF(CHanHLPF_STR *p)
 {
-    if (p->Ch >= 6) return;
+    if (p->Ch >= 6 || p->Ch == 4) return;
     dspInfo.hpf[p->Ch].Ch = p->Ch;
     dspInfo.hpf[p->Ch].xpf.Fc = p->xpf.Fc;
     dspInfo.hpf[p->Ch].xpf.Type = p->xpf.Type;

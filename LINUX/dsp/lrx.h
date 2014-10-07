@@ -409,6 +409,7 @@ typedef struct
 } STR_DSP;
 
 STR_DSP dspInfo;
+STR_DSP *rDspInfo;
 
 
 

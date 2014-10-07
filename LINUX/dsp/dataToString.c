@@ -65,17 +65,6 @@ void hlpfToStr(HLPF_STR *p, char *dest)
     printf("\n%s,len=%d\n",dest,strlen(dest));
 }
 
-void bpfToStr(BPF_STR *p, char *dest)
-{
-    char tmp[64]={0};
-    int len=0;
-
-    memset(tmp,0,64);
-    sprintf(tmp,"bf%d,%d,%d,%d,",p->Fp,p->Fs,p->Type,p->en);
-    strcpy(dest+len,tmp);
-
-    printf("\n%s,len=%d\n",dest,strlen(dest));
-}
 
 void agcToStr(DRC_STR *p, char *dest)
 {
@@ -110,6 +99,7 @@ void hpfToStr(CHanHLPF_STR *p, char *dest)
     int len=0;
     int i;
     for(i=0;i<6;i++,p+=1) {
+        if (i == 4) continue;
         memset(tmp,0,64);
         sprintf(tmp,"hpf%d,",p->Ch);
         hlpfToStr(&(p->xpf), tmp+strlen(tmp));
@@ -118,6 +108,35 @@ void hpfToStr(CHanHLPF_STR *p, char *dest)
     }
     printf("\n%s,len=%d\n",dest,strlen(dest));
 }
+
+void BpfToStr(BPF_OP *p, char *dest)
+{   
+    int i;
+    char tmp[64]={0};
+    int len=0;
+    
+    memset(tmp,0,64);
+	sprintf(tmp,"bpf %d,%d,%d,%d,%d,\n",p->Ch,p->Fp,p->Fs,p->Type,p->en);
+    strcpy(dest+len,tmp);
+    len += strlen(tmp);
+    
+    printf("\n%s,len=%d\n",dest,strlen(dest));
+}
+
+void bpfToStr(BPF_STR *p, char *dest)
+{   
+    int i;
+    char tmp[64]={0};
+    int len=0;
+    
+    memset(tmp,0,64);
+	sprintf(tmp,"bpf %d,%d,%d,%d,\n",p->Fp,p->Fs,p->Type,p->en);
+    strcpy(dest+len,tmp);
+    len += strlen(tmp);
+    
+    printf("\n%s,len=%d\n",dest,strlen(dest));
+}
+
 
 void sctToStr(SCTOP_STR *p, char *dest)
 {
@@ -216,8 +235,7 @@ void achEQToStr(EQOP_STR  *p, char *dest)
     int len=0;
     int i;
     
-    //for(i=0;i<48;i++,p+=1)   //48个
-    for(i=0;i<1;i++)        // 1个
+    for(i=0;i<48;i++,p+=1)   //48个
     {
         //printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
         memset(tmp,0,64);
@@ -226,8 +244,130 @@ void achEQToStr(EQOP_STR  *p, char *dest)
         len += strlen(tmp);
     }
 
-    //printf("%s,len=%d\n",dest,strlen(dest));
+    printf("%s,len=%d\n",dest,strlen(dest));
 }
+
+/*
+* 2014.10.7
+*/
+void achEQToStr0(EQOP_STR  *p, char *dest)
+{
+    char tmp[64]={0};
+    int len=0;
+    int i;
+    
+    for(i=0;i<10;i++,p+=1)   //10个
+    {
+        //printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        memset(tmp,0,64);
+        sprintf(tmp,"EQ%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        strcpy(dest+len,tmp);
+        len += strlen(tmp);
+    }
+    printf("%s,len=%d\n",dest,strlen(dest));
+}
+
+/*
+* 2014.10.7
+*/
+void achEQToStr1(EQOP_STR  *p, char *dest)
+{
+    char tmp[64]={0};
+    int len=0;
+    int i;
+    
+    for(i=0;i<10;i++,p+=1)   //10个
+    {
+        //printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        memset(tmp,0,64);
+        sprintf(tmp,"EQ%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        strcpy(dest+len,tmp);
+        len += strlen(tmp);
+    }
+    printf("%s,len=%d\n",dest,strlen(dest));
+}
+
+/*
+* 2014.10.7
+*/
+void achEQToStr2(EQOP_STR  *p, char *dest)
+{
+    char tmp[64]={0};
+    int len=0;
+    int i;
+    
+    for(i=0;i<10;i++,p+=1)   //10个
+    {
+        //printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        memset(tmp,0,64);
+        sprintf(tmp,"EQ%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        strcpy(dest+len,tmp);
+        len += strlen(tmp);
+    }
+    printf("%s,len=%d\n",dest,strlen(dest));
+}
+
+/*
+* 2014.10.7
+*/
+void achEQToStr3(EQOP_STR  *p, char *dest)
+{
+    char tmp[64]={0};
+    int len=0;
+    int i;
+    
+    for(i=0;i<10;i++,p+=1)   //10个
+    {
+        //printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        memset(tmp,0,64);
+        sprintf(tmp,"EQ%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        strcpy(dest+len,tmp);
+        len += strlen(tmp);
+    }
+    printf("%s,len=%d\n",dest,strlen(dest));
+}
+
+/*
+* 2014.10.7
+*/
+void achEQToStr4(EQOP_STR  *p, char *dest)
+{
+    char tmp[64]={0};
+    int len=0;
+    int i;
+    
+    for(i=0;i<5;i++,p+=1)   //10个
+    {
+        //printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        memset(tmp,0,64);
+        sprintf(tmp,"EQ%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        strcpy(dest+len,tmp);
+        len += strlen(tmp);
+    }
+    printf("%s,len=%d\n",dest,strlen(dest));
+}
+
+/*
+* 2014.10.7
+*/
+void achEQToStr5(EQOP_STR  *p, char *dest)
+{
+    char tmp[64]={0};
+    int len=0;
+    int i;
+    
+    for(i=0;i<3;i++,p+=1)   //10个
+    {
+        //printf("%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        memset(tmp,0,64);
+        sprintf(tmp,"EQ%d,%d,%f,%f,%d,%d,%d,",p->Ch,p->no,p->peq.Q,p->peq.Gain, p->peq.Fc,p->peq.Type,p->peq.en);
+        strcpy(dest+len,tmp);
+        len += strlen(tmp);
+    }
+    printf("%s,len=%d\n",dest,strlen(dest));
+}
+
+
 
 void bchEQToStr(EQOP_STR  p[2][7], char *dest)
 {
@@ -246,7 +386,7 @@ void bchEQToStr(EQOP_STR  p[2][7], char *dest)
         }
 
     }
-    //printf("%s,len=%d\n",dest,strlen(dest));
+    printf("%s,len=%d\n",dest,strlen(dest));
 }
 
 void volToStr(VOL_OP *p, char *dest)

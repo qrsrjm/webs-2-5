@@ -36,29 +36,24 @@
 <% aspVol(); %><br/>
 <% aspGetInputVol(); %><br/>
 <% aspGetBchEQ(); %><br/>
-<% aspGetAchEQ(); %><br/>
+<% aspGetAchEQ0(); %><br/>
+<% aspGetAchEQ1(); %><br/>
+<% aspGetAchEQ2(); %><br/>
+<% aspGetAchEQ3(); %><br/>
+<% aspGetAchEQ4(); %><br/>
+<% aspGetAchEQ5(); %><br/>
 <% aspGetOutDly(); %><br/>
 <% aspGetLimit(); %><br/>
 <% aspGet3D(); %><br/>
 <% aspGetSct(); %><br/>
 <% aspGetHpf(); %><br/>
-<% aspGetLpf(); %><br/>
+<% aspGetBpf(); %><br/>
 <% aspGetAd(); %><br/>
 <% aspGetOutMix(); %><br/>
 <% aspGetOutVol(); %><br/>
 <% aspGetVersion(); %><br/>
 
-<span style="color:#3333ff;"><!-- added start for test upload file by gyr 2011.10.15 -->  
-	<h1>GoForm upload file test</h1>  
-	<form id="softupdate" action=/goform/formUploadFileTest method=POST enctype="multipart/form-data">  
-	    <table>  
-	        Select file: <td> <input id="fileupload" type="file" name="fileupload" size=60 value="">    </td>  
-	        <td> <input id="fileuploadsubmit" type="submit" name="update" value="update" onClick="uploadFileSubmit()">  </td>  
-	    </table>  
-	</form>  
-	<!-- added end for test upload file by gyr 2011.10.15 -->  
-  
-</span>  
+ 
 
 <span style="color:#3333ff;"><!-- added start for test upload file by gyr 2011.10.15 -->  
 	<h1>GoForm Test</h1>  
