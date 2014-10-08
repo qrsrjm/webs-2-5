@@ -34,6 +34,7 @@ void	formDefineUserMgmt(void);
 /** add by qmd  2014.9.20  */
 #include "dsp/DSP.h"
 #include "dsp/dataToString.h"
+#include "dsp/flash_api.h"
 
 //STR_DSP *rDspInfo = NULL;
 
@@ -147,6 +148,10 @@ void repBPF(BPF_STR *p, uint8 Ch);
 
 static void firmwareDownload();
 static void initArchive();
+
+
+int websAjaxHandler(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg, char_t *url, char_t *path, char_t *query);
+
 
 
 /*********************************** Code *************************************/
@@ -402,6 +407,7 @@ static int initWebs(int demo)
     websFormDefine(T("formShowInfo"), formShowInfo);
     websFormDefine(T("formAllByPass"), formAllByPass);
 
+	websUrlHandlerDefine(T("/ajax"), NULL, 0, websAjaxHandler, 0);
 	
 /*
  *	Create the Form handlers for the User Management pages
@@ -445,6 +451,21 @@ static int	aspTest2(int eid, webs_t wp, int argc, char_t **argv)
     return websWrite(wp, T("%s"),dest);
 }
 
+/******************************************************************************/
+/*   by  qmd  2014.10.8
+ *	Test Javascript binding for ASP. This will be invoked when "aspTest" is
+ *	embedded in an ASP page. See web/asp.asp for usage. Set browser to
+ *	"localhost/asp.asp" to test.
+ */
+int websAjaxHandler(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg, 
+                            char_t *url, char_t *path, char_t *query)
+{
+  	websHeader(wp);
+	websWrite(wp, T("<body><h2>this is ajax test!</h2>\n"));
+	websFooter(wp);
+	websDone(wp, 200);
+	return 1;
+}
 
 /******************************************************************************/
 /*   by  qmd  2014.9.19
@@ -1770,6 +1791,7 @@ static void formVuDetect(webs_t wp, char_t *path, char_t *query)
  *  Test form for posted data (in-memory CGI). This will be called when the
  *  form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
  */
+//typedef int size_t;
 static void formSave(webs_t wp, char_t *path, char_t *query)
 {    
     uint8 outVal[8]={0};
@@ -1786,6 +1808,26 @@ static void formSave(webs_t wp, char_t *path, char_t *query)
     
     fclose(fp);
 	printf("%s> save %s ,rt=%d\n", __FUNCTION__,fileName,rt);
+
+#if 0
+    char buf[10]="abcdef";
+    int fd = open("/dev/mtd5", O_RDWR | O_SYNC);
+    if (fd < 0) {
+        fprintf(stderr, "Could not open mtd device\n");
+        return -1;
+    }
+    int ret = write(fd, buf, strlen(buf));memset(buf,0,10);
+    ret = read(fd, buf, strlen(buf));
+    printf("buf=%s\n",buf);
+    close(fd);
+#else
+    char buf[10]="abcdef";
+    flash_write_archive(buf, 0, strlen(buf)); 
+
+    char buf1[64]={0};
+    flash_read_archive(buf1, 0, strlen(buf));
+    printf("buf1=%s\n",buf1);
+#endif    
 }
 
 

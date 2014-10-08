@@ -103,7 +103,7 @@ $(ARCH): $(DEPEND_FILES)
 $(NAME): Makefile $(ARCH)
 	$(CC) -o $(NAME) $(DFLAGS) \
 		$(CFLAGS) $(IFLAGS) \
-		main.o $(ARCH) $(LDFLAGS) lrsunDsp.so 
+		main.o $(ARCH) $(LDFLAGS) lrsunDsp.so libnvram-0.9.28.so
 
 clean:
 	rm -f $(NAME) $(ARCH) $(DEPEND_FILES)
