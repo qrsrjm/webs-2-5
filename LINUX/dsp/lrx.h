@@ -408,13 +408,38 @@ typedef struct
     char version[8];
 } STR_DSP;
 
+
+
+#define NAME_CNT   11
+#define NAME_LEN   20
+
+///机器信息
+typedef struct MachineInformation
+{
+    char name[NAME_LEN];  //<启动存档名
+    int sv;               //<软件版本  
+    int hv;               //<硬件版本
+    int SerialNumber;     //<序列号  
+    int date;             //< 日期 
+}MACINFO;
+
+typedef struct Machine
+{
+    MACINFO macInfo;
+    char archiveName[NAME_CNT][NAME_LEN];  //<存档名
+    STR_DSP *readDspInfo;
+}MACHINE;
+
+
+#define MACINF_ADDR     0
+#define NAME_ADDRX(x)   (sizeof(MACINFO) + sizeof(char)*NAME_LEN*(x))
+#define DATA_ADDRX(x)   (sizeof(MACINFO) + sizeof(char)*NAME_CNT*NAME_LEN + sizeof(STR_DSP)*(x))
+
+
 STR_DSP dspInfo;
 STR_DSP *rDspInfo;
 
-
-
-
-
+MACHINE machine;
 
 
 #endif //G_VARIABLE_H__

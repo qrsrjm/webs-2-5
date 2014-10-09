@@ -83,7 +83,7 @@ DEPEND_FILES	= $(OPT_FILES) ../asp.o ../balloc.o ../mime64.o \
 	 	../ringq.o ../rom.o  ../sock.o ../sockGen.o \
 		../security.o ../sym.o ../uemf.o ../url.o ../value.o \
 		../um.o ../umui.o ../websda.o ../emfdb.o \
-		../webrom.o ../webs.o ../websuemf.o main.o ./dsp/dataToString.o
+		../webrom.o ../webs.o ../websuemf.o main.o ./dsp/dataToString.o ./dsp/dspArchive.o
 CFLAGS	= -DWEBS -DOS="LINUX" -DLINUX $(UMSW) $(DASW) $(SSLSW) $(IFMODSW)
 OTHERS	= -DB_STATS -DB_FILL 
 IFLAGS 	= -I.. 
@@ -178,6 +178,7 @@ clean:
 main.o:  main.c ../wsIntrn.h ../webs.h ../ej.h ../ejIntrn.h ../uemf.h 
 
 dataToString.o: dataToString.c
+dspArchive.o: dspArchive.c
 
 #
 #	Transition rules (add -o to put object in right directory)

@@ -35,6 +35,7 @@ void	formDefineUserMgmt(void);
 #include "dsp/DSP.h"
 #include "dsp/dataToString.h"
 #include "dsp/flash_api.h"
+#include "dsp/dspArchive.h"
 
 //STR_DSP *rDspInfo = NULL;
 
@@ -125,6 +126,8 @@ static void formSave(webs_t wp, char_t *path, char_t *query);      //<!---±£´æ´æ
 static void formRead(webs_t wp, char_t *path, char_t *query);      //<!---¶Á´æµµ--->
 static void formShowInfo(webs_t wp, char_t *path, char_t *query);  //<!---ÏÔÊ¾´æµµ--->	
 static void formAllByPass(webs_t wp, char_t *path, char_t *query); //<!---all bypass ËùÓÐÄ£¿é--->
+static void formArchive(webs_t wp, char_t *path, char_t *query);
+
 
 void repACHEQ(EQOP_STR *p);
 void repBCHEQ(EQOP_STR *p);
@@ -168,12 +171,7 @@ int main(int argc, char** argv)
 			demo++;
 		}
 	}
-    //add qmd 2014.9.30
-    #if 1 //test_info
-    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
-    #else
-    rDspInfo = &dspInfo;
-    #endif
+
 /*
 *    2014.10.6
 */
@@ -406,6 +404,8 @@ static int initWebs(int demo)
 	websFormDefine(T("formRead"), formRead);
     websFormDefine(T("formShowInfo"), formShowInfo);
     websFormDefine(T("formAllByPass"), formAllByPass);
+    websFormDefine(T("formArchive"), formArchive);
+
 
 	websUrlHandlerDefine(T("/ajax"), NULL, 0, websAjaxHandler, 0);
 	
@@ -996,10 +996,48 @@ static void formTest(webs_t wp, char_t *path, char_t *query)
 static void firmwareDownload()
 {
     DapHwInit();
-    DspAllByPass();
+
+#if 1
+    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
+#else
+    rDspInfo = &dspInfo;
+#endif
+
+    memset(&machine,0,sizeof(machine));
+    machine.macInfo.hv = machine.macInfo.sv = machine.macInfo.SerialNumber = 11;
+    int rM = readMacInfo(&(machine.macInfo));
+    int rN = readNameList(machine.archiveName);
+
+    showName(machine.archiveName);
+
+    printf("rm=%d,rn=%d\n",rM,rN);
+    
+    //DspAllByPass();
+    
+    int ret;
+    if (rM == -1 && rN == 0) {
+        ret = findName(machine.archiveName, machine.archiveName[0]); 
+        if (ret >= 0) {
+		    flash_read_archive((char*)rDspInfo, DATA_ADDRX(ret), sizeof(STR_DSP));
+            initArchive();
+        } else {
+            DspAllByPass();
+        }
+    } else if (rM == 0 && rN == 0) {
+        ret = findName(machine.archiveName, machine.macInfo.name); 
+        if (ret >= 0) {
+		    flash_read_archive((char*)rDspInfo, DATA_ADDRX(ret), sizeof(STR_DSP));
+            initArchive();
+        } else {
+            DspAllByPass();
+        }
+    } else if (rM == -1 && rN == -1) {
+        DspAllByPass();
+    } 
+
+    machine.readDspInfo = rDspInfo;
     
     printf("firmwareDownload finish\n");
-    initArchive();
 }
 
 /******************************************************************************/
@@ -1010,22 +1048,25 @@ static void firmwareDownload()
 static void initArchive()
 {
     int i,j;
-    char_t  *fileName = "a";
-    //fileName =    websGetVar(wp, T("fileName"), T("default.txt"));    
 
+#if 0 //READ_FILE     
+    char_t  *fileName = "a";  
     FILE *fp = fopen(fileName,"r");
     if (fp == NULL) {
         printf("can't open default.txt\n");
         return;
-    }
-    
+    }   
     int rt = fread(rDspInfo,1,sizeof(STR_DSP),fp);
-	memcpy(&dspInfo,rDspInfo,sizeof(rDspInfo));
+#endif  //READ_FILE  
+
+	memcpy(&dspInfo,rDspInfo,sizeof(dspInfo));
+#if 1
 
     printf("ad\n");   
 	//AD
 	DspAorDChanMixer(&(rDspInfo->ad));
     
+  
     printf("input vol\n");	
 	//input vol
 	for(i=0;i<3;i++)
@@ -1051,14 +1092,23 @@ static void initArchive()
 		DspSetSctDepth(0, rDspInfo->sct[i].hVolDepth, rDspInfo->sct[i].Ch);
 		DspSetSctDepth(1, rDspInfo->sct[i].bVolDepth, rDspInfo->sct[i].Ch);
 		DspSetSctDepth(2, rDspInfo->sct[i].lVolDepth, rDspInfo->sct[i].Ch);
+
+        DspSctEn(rDspInfo->sct[i].en,rDspInfo->sct[i].Ch);
+        if (rDspInfo->sct[i].en) {
+            DspSctMix(rDspInfo->sct[i].mix,rDspInfo->sct[i].Ch);
+        }
 	}
 
     printf("crossbar\n");	
-	//crossbar1
+	//crossbar1   (int32)(fval * 0x00800000)
 	for(i=0;i<2;i++) {
-	for(j=0;j<6;j++)
-    	DspMixerSet(1, rDspInfo->crossbar1[i][j].in, rDspInfo->crossbar1[i][j].out, rDspInfo->crossbar1[i][j].mix);
-	}
+	    for(j=0;j<6;j++) {
+	        //DspMixerSet(0, rDspInfo->crossbar1[i][j].in, rDspInfo->crossbar1[i][j].out,
+	        //    rDspInfo->crossbar1[i][j].mix);
+	        DspMixerSet(0, i, j,
+	            rDspInfo->crossbar1[i][j].mix);
+        }
+    }
 
     printf("output vol\n");	
 	//output vol
@@ -1069,8 +1119,9 @@ static void initArchive()
     printf("bch eq\n");	
 	//BCHEQ
 	for(i=0;i<2;i++) {
-	for(i=0;i<7;i++)
-		DspBCHPEQ(&(rDspInfo->bchEQ[i][j]));		
+    	for(j=0;j<7;j++) {
+    		DspBCHPEQ(&(rDspInfo->bchEQ[i][j]));
+        }
 	}
 
     printf("ach eq\n");	
@@ -1100,7 +1151,7 @@ static void initArchive()
 	//output dly
 	for(i=0;i<6;i++)
 		DspOutDelay(&(rDspInfo->outDly[i]));
-
+#endif
     printf("init finish\n");
 }
 
@@ -1112,11 +1163,15 @@ static void initArchive()
 static void formDlownload(webs_t wp, char_t *path, char_t *query)
 {
 	printf("formDlownload()\n");
+#if 1
+    firmwareDownload();
+#else
 	DapHwInit();
     //DspFunModInit();
     DspAllByPass();
     //readAllHLpfEQ();
     //testMUX();
+#endif    
 }
 
 
@@ -1755,8 +1810,8 @@ static void formCrossbar1(webs_t wp, char_t *path, char_t *query)
 
     in =    websGetVar(wp, T("in"), T("0"));
     out =   websGetVar(wp, T("out"), T("0"));
-    rd = websGetVar(wp, T("rd"), T("0"));
-    mix =  websGetVar(wp, T("mix"), T("0"));
+    rd =    websGetVar(wp, T("rd"), T("0"));
+    mix =   websGetVar(wp, T("mix"), T("0"));
 
     Crossbar_STR *p = (Crossbar_STR*)malloc(sizeof(Crossbar_STR));
     p->in=atoi(in); p->out=atoi(out); p->rd=atoi(rd); p->mix=atof(mix);
@@ -1797,8 +1852,9 @@ static void formSave(webs_t wp, char_t *path, char_t *query)
     uint8 outVal[8]={0};
 
     char_t  *fileName;
-    fileName =    websGetVar(wp, T("fileName"), T("default.txt"));
-    
+    fileName =    websGetVar(wp, T("fileName"), T(""));
+
+#if 0 //READ_FILE    
     FILE *fp = fopen(fileName,"w");
     if (fp == NULL) {
         printf("can't open %s\n",fileName);
@@ -1807,27 +1863,28 @@ static void formSave(webs_t wp, char_t *path, char_t *query)
     int rt = fwrite(&dspInfo,1,sizeof(dspInfo),fp);
     
     fclose(fp);
-	printf("%s> save %s ,rt=%d\n", __FUNCTION__,fileName,rt);
-
-#if 0
-    char buf[10]="abcdef";
-    int fd = open("/dev/mtd5", O_RDWR | O_SYNC);
-    if (fd < 0) {
-        fprintf(stderr, "Could not open mtd device\n");
-        return -1;
+#else //READ_FILE 
+    int rt = findName(machine.archiveName, fileName);
+    if (rt >= 0) {
+        flash_write_archive((char*)&dspInfo, DATA_ADDRX(rt), sizeof(dspInfo));
+    } else {
+        rt = addName(machine.archiveName, fileName);
+        if (rt >= 0) {
+            flash_write_archive((char*)&dspInfo, DATA_ADDRX(rt), sizeof(dspInfo));
+        } else if (rt == -1) {
+            printf("name is NULL,pls input file name.\n");
+        } else if (rt == -2) {
+            printf("name is too long, pls input file name.\n");
+        }
     }
-    int ret = write(fd, buf, strlen(buf));memset(buf,0,10);
-    ret = read(fd, buf, strlen(buf));
-    printf("buf=%s\n",buf);
-    close(fd);
-#else
-    char buf[10]="abcdef";
-    flash_write_archive(buf, 0, strlen(buf)); 
-
-    char buf1[64]={0};
-    flash_read_archive(buf1, 0, strlen(buf));
-    printf("buf1=%s\n",buf1);
-#endif    
+    showName(machine.archiveName); 
+    char *str = (char*)malloc(NAME_CNT*sizeof(char)*NAME_LEN);
+    nameToStr(machine.archiveName, str);
+	flash_write_archive(str, NAME_ADDRX(0), sizeof(char)*NAME_LEN*NAME_CNT);
+    free(str);
+	
+#endif
+	printf("%s> save %s ,rt=%d\n", __FUNCTION__,fileName,rt);
 }
 
 
@@ -1843,21 +1900,49 @@ static void formRead(webs_t wp, char_t *path, char_t *query)
     uint8 outVal[8]={0};
     
     char_t  *fileName;
-    fileName =    websGetVar(wp, T("fileName"), T("default.txt"));    
+    fileName =    websGetVar(wp, T("fileName"), T(""));    
 
+#if 0 //READ_FILE
     FILE *fp = fopen(fileName,"r");
     if (fp == NULL) {
         printf("can't open default.txt\n");
         return;
     }
-    
-    //if(first) {
-    //    first = 0;
-    //    rDspInfo = (STR_DSP*)malloc(sizeof(STR_DSP));
-    //}
     int rt = fread(rDspInfo,1,sizeof(STR_DSP),fp); 
-    printf("read rt=%d read %s\n",rt,fileName);
+#else
+    showName(machine.archiveName);
+    int ret = findName(machine.archiveName, fileName);
+    if (ret >= 0) {
+        flash_read_archive((char*)rDspInfo, DATA_ADDRX(ret), sizeof(STR_DSP));        
+    } else if (ret == -1) {
+        printf("not have this archive<%s>\n", fileName);
+    } else if (ret == -2) {
+        printf("archive is null.\n");
+    } else if (ret == -3) {
+        printf("file name is null,pls input ...\n");
+    }
+    
+#endif //READ_FILE
+    
+    printf("read ret=%d read %s\n",ret,fileName);
 }
+
+
+
+/******************************************************************************/
+/*   by qmd 2014.9.30
+ *  Test form for posted data (in-memory CGI). This will be called when the
+ *  form in web/forms.asp is invoked. Set browser to "localhost/forms.asp" to test.
+ */
+static void formArchive(webs_t wp, char_t *path, char_t *query)
+{ 
+    char_t  *fileName;
+    fileName =    websGetVar(wp, T("fileName"), T("")); 
+    changeStartName(machine.macInfo.name, fileName);
+    printf("%s> start load %s.\n",__FUNCTION__,fileName);
+}
+
+
 
 /******************************************************************************/
 /*   by qmd 2014.9.30
@@ -2127,12 +2212,6 @@ void repSctMix(unsigned char Ch, float mixer[4])
 {
 	if (Ch >= 2) return;
 	memcpy(dspInfo.sct[Ch].mix,mixer,sizeof(mixer)*4);	
-	dspInfo.sct[Ch].Ch = Ch;
-    if (0 == (int32)(mixer[0] * 0x00800000)) {
-        dspInfo.sct[Ch].en = 0;
-    } else {
-        dspInfo.sct[Ch].en = 1;
-    }
 }
 
 void repSctEn(unsigned char Ch, uint8_t en)

@@ -381,6 +381,14 @@
 		    <input  name="" type="submit"/>
 	</form>
 	<hr/>
+
+	<iframe style="display: none" id="rfFrame"  name="rfFrame" src="about:blank"></iframe> <!--让表单提交后不刷新页面-->
+	<h1>GoForm archive</h1> 
+	<form name="archive" action="/goform/formArchive" method="post" target="rfFrame">	
+	  name: <input type="text"  name="fileName"/><br/>
+		    <input  name="" type="submit"/>
+	</form>
+	<hr/>
 	
 </body>
 </html>
